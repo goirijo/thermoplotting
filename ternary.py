@@ -2,22 +2,22 @@ import scipy.spatial as spa
 import scipy.linalg as lin
 import numpy
 
-def faces(data_list):
+def hull_facets(data_list):
     """Creates convex hull from your data set and returns
-    a list of all the faces that make up the hull. Meant to be used with a
+    a list of all the facets that make up the hull. Meant to be used with a
     data list that has two compositions and energy.
 
     :data_list: numpy array of numpy array
-    :returns: array of faces (collection of 3 points)
+    :returns: array of facets (collection of 3 points)
 
     """
     tri=spa.Delaunay(data_list)
     simplex=tri.find_simplex
-    faces=[]
+    facets=[]
     for ia, ib, ic in tri.convex_hull:
-        faces.append(data_list[[ia,ib,ic]])
+        facets.append(data_list[[ia,ib,ic]])
 
-    return faces
+    return facets
 
 
 def normal(three_points):
@@ -103,7 +103,7 @@ def pruned_facets(facet_list, normalvec, tolerace=0.0001):
     whose three points are coplanar with a normal vector
     parallel to the given normalvec
 
-    :face_list: list of facets in hull
+    :facet_list: list of facets in hull
     :normalvec: reference normal vector to know which facets to remove
     :returns: truncated version of input
 
@@ -148,3 +148,51 @@ def energy(data_list):
 
     """
     return data_list[:,2]
+
+def pruned_hull_facets(data_list):
+    """Calls facets() to get all facets of the convex hull, but then
+    removes all facets on binary subspace, as well as any resulting
+    facets above the reference endpoints.
+
+    :data_list: numpy array of numpy array
+    :returns: array of facets (collection of 3 points)
+
+    """
+    bottomdata=truncated_data(data_list)
+    facet_list=hull_facets(bottomdata)
+
+    norm=numpy.array([0,0,1])
+    facet_list=pruned_facets(facet_list, norm);
+
+    norm=numpy.array([0,1,0])
+    facet_list=pruned_facets(facet_list, norm);
+
+    norm=numpy.array([1,0,0])
+    facet_list=pruned_facets(facet_list, norm);
+
+    norm=endstates_normal(data_list)
+    facet_list=pruned_facets(facet_list, norm);
+
+    return facet_list
+    
+
+def equil_trans(data_list):
+    """Recursively goes through all the data points and applies shear matrix
+    so that the composition space looks like an equilateral triangle
+
+    :data_list: arbitrarily dimensioned array, can be clobber() or faces()
+    :returns: double numpy array with transformed composition values
+
+    """
+    transmat=numpy.array([[1,0.5,0],[0,3**(0.5)/2,0],[0,0,1]])
+
+    returndata=[]
+    for point in data_list:
+        if point.ndim==1:
+            point=numpy.dot(transmat,point)
+        else:
+            point=equil_trans(point)
+
+        returndata.append(point)
+
+    return numpy.array(returndata)
