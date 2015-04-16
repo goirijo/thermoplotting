@@ -1,3 +1,4 @@
-import thermoplotting.thermoio as io
-import thermoplotting.ternary
-import thermoplotting.thermotest
+import thermoio
+import binary
+import ternary
+import grandcanonical as gc

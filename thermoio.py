@@ -1,12 +1,13 @@
 import glob
 import numpy
 
-def collect():
+def collect(directory='./'):
     """Collect all the data in *.thdat files and return values as numpy array
     :returns: array of double numpy array
 
     """
-    input_data_files=glob.glob('*.thdat')
+    globable=directory+'*.thin'
+    input_data_files=glob.glob(globable)
 
     input_data_list=[]
     for filename in input_data_files:

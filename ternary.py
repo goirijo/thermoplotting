@@ -2,6 +2,18 @@ import scipy.spatial as spa
 import scipy.linalg as lin
 import numpy
 
+def prepare_input(file_name):
+    """Read in from list of files and output them as new .thin
+    files that are compatible with the expected format:
+    composition0, composition1, energy
+
+    :file_name: name of file, presumably casm output
+    :returns: void, but you'll end up with new a file "oldfile.thin"
+
+    """
+    pass
+
+
 def hull_facets(data_list):
     """Creates convex hull from your data set and returns
     a list of all the facets that make up the hull. Meant to be used with a
