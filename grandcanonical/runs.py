@@ -17,36 +17,36 @@ def prepare_input(filenamelist, num_components):
 
     return
     
-def ceil_mu(data, component, maxmu, num_components):
-    """Return new array without any entries that have a chemical potential
+def ceil_copy_mu(data, component, maxmu, num_components):
+    """Return slice without any entries that have a chemical potential
     larger than the specified one.
 
     :data: double numpy array of all monte values
     :component: index into component of interest. Start counting at 0.
     :maxmu: maximum allowed value for chemical potential
     :num_components: integer of total number of components
-    :returns: double numpy array without certain entries
+    :returns: COPY of double numpy array without certain entries
 
     """
     return data[data[:,access.mu_ind(component,num_components)]<=maxmu]
 
 
 
-def floor_mu(data, component, minmu, num_components):
-    """Return new array without any entries that have a chemical potential
+def floor_copy_mu(data, component, minmu, num_components):
+    """Return slice without any entries that have a chemical potential
     lower than the specified one.
 
     :data: double numpy array of all monte values
     :component: index into component of interest. Start counting at 0.
     :minmu: minimum allowed value for chemical potential
     :num_components: integer of total number of components
-    :returns: double numpy array without certain entries
+    :returns: COPY of double numpy array without certain entries
 
     """
     return data[data[:,access.mu_ind(component,num_components)]>=minmu]
 
-def slice_mu(data, component, muval, num_components, tolerance=0.000001):
-    """Return a new array that only has chemical potential values
+def slice_copy_mu(data, component, muval, num_components, tolerance=0.000001):
+    """Return a slice that only has chemical potential values
     equal to the specified one (within a tolerance. Stupid floats...)
     
     :data: double numpy array of all monte values
@@ -54,48 +54,60 @@ def slice_mu(data, component, muval, num_components, tolerance=0.000001):
     :muval: value of chemical potential you want a slice of
     :num_components: integer of total number of components
     :tolerance: float comparison tolerance, defaults to 0.000001
-    :returns: double numpy array without certain entries
+    :returns: COPY of double numpy array without certain entries
     """
 
     return data[abs(data[:,access.mu_ind(component,num_components)]-muval)<tolerance]
 
 
     
-def ceil_T(data, maxtemp, num_components):
-    """Return new array without any entries that have a temperature
+def ceil_copy_T(data, maxtemp, num_components):
+    """Return slice without any entries that have a temperature
     larger than the specified one.
 
     :data: triple numpy array of all monte values, for all runs.
     :maxtemp: maximum allowed value for temperature
     :num_components: integer of total number of components
-    :returns: double numpy array without certain entries
+    :returns: COPY of double numpy array without certain entries
 
     """
     return data[data[:,access.temperature_ind(num_components)]<=maxtemp]
 
 
-def floor_T(data, mintemp, num_components):
-    """Return new array without any entries that have a temperature
+def floor_copy_T(data, mintemp, num_components):
+    """Return slice without any entries that have a temperature
     larger than the specified one.
 
     :data: double numpy array of all monte values
     :mintemp: minimum allowed value for temperature
     :num_components: integer of total number of components
-    :returns: double numpy array without certain entries
+    :returns: COPY of double numpy array without certain entries
 
     """
     return data[data[:,access.temperature_ind(num_components)]>=mintemp]
 
-def slice_T(data, tempval, num_components, tolerance=0.000001):
-    """Return a new array that only has temperature values
+def slice_copy_T(data, tempval, num_components, tolerance=0.000001):
+    """Return a slice that only has temperature values
     equal to the specified one (within a tolerance. Stupid floats...)
     
     :data: double numpy array of all monte values
     :tempval: value of temperature you want a slice of
     :num_components: integer of total number of components
     :tolerance: float comparison tolerance, defaults to 0.000001
-    :returns: double numpy array without certain entries
+    :returns: COPY of double numpy array without certain entries
     """
 
     return data[abs(data[:,access.temperature_ind(num_components)]-tempval)<tolerance]
 
+def sort_mu_copy(data, component, num_components):
+    """Return copy of your data set, sorted by the chemical potential
+    of component
+
+    :data: double numpy array of all monte values
+    :component: which component to sort by
+    :num_components: integer of total number of components
+    :returns: COPY of double numpy array in new order
+    """
+
+    reorder=numpy.lexsort((access.mu(data,component,num_components),))
+    return data[reorder]
