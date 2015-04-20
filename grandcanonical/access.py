@@ -197,3 +197,14 @@ def free_energy(data, num_components):
     """
     return data[:, free_energy_ind(num_components)]
 
+def backwards(data):
+    """Invert the order of your data and return a view.
+
+
+    :data: double numpy array of all monte values
+    :num_components: integer of total number of components
+    :returns: numpy array in new order
+
+    """
+    data=data[::-1]
+    return data

@@ -111,3 +111,14 @@ def sort_mu_copy(data, component, num_components):
 
     reorder=numpy.lexsort((access.mu(data,component,num_components),))
     return data[reorder]
+
+def sort_T_copy(data, num_components):
+    """Return copy of your data set, sorted by temperature
+
+    :data: double numpy array of all monte values
+    :num_components: integer of total number of components
+    :returns: COPY of double numpy array in new order
+    """
+
+    reorder=numpy.lexsort((access.temperature(data, num_components),))
+    return data[reorder]
