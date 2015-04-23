@@ -1,53 +1,53 @@
 import numpy
 
-def prepare_input(filename, num_components):
-    """Read in from file of averages and output them as new .thin
-    files that are compatible with the expected format:
-    mu_i, ... , mu_N, T, beta, gc energy, low temp expansion
-
-
-    :filename: file name, presumably casm output
-    :num_components: integer of how many components are in your system (how many chemical potentials)
-    :returns: void, but you'll end up with a new file
-
-    """ 
-    datadump=numpy.loadtxt(filename, comments='#')
-
-    desiredcolumns=[]
-    for compind in range(0,num_components):
-        mucolumnind=3+num_components+3+compind
-        desiredcolumns.append(datadump[:, mucolumnind])
-
-    for compind in range(0,num_components):
-        speciescolumnind=3+compind
-        desiredcolumns.append(datadump[:, speciescolumnind])
-
-    tempcolumnind=3+num_components+1
-    desiredcolumns.append(datadump[:, tempcolumnind])
-
-    betacolumnind=tempcolumnind+1
-    desiredcolumns.append(datadump[:, betacolumnind])
-
-    gcecolumnind=3+num_components
-    desiredcolumns.append(datadump[:, gcecolumnind])
-
-    lowtexpcolumnind=0  #not really
-    desiredcolumns.append(datadump[:, gcecolumnind])    #make this a real thing to actually account for low T expansion
-
-
-
-    #column for free energy
-    emptyfreeenergy=numpy.empty(numpy.shape(desiredcolumns[-1]))
-    emptyfreeenergy.fill(numpy.nan)
-    desiredcolumns.append(emptyfreeenergy)
-
-    desireddata=numpy.array(desiredcolumns)
-    desireddata=numpy.transpose(desireddata)
-
-    outputname=filename+".thin"
-    numpy.savetxt(outputname, desireddata)
-
-    return
+#def prepare_input(filename, num_components):
+#    """Read in from file of averages and output them as new .thin
+#    files that are compatible with the expected format:
+#    mu_i, ... , mu_N, T, beta, gc energy, low temp expansion
+#
+#
+#    :filename: file name, presumably casm output
+#    :num_components: integer of how many components are in your system (how many chemical potentials)
+#    :returns: void, but you'll end up with a new file
+#
+#    """ 
+#    datadump=numpy.loadtxt(filename, comments='#')
+#
+#    desiredcolumns=[]
+#    for compind in range(0,num_components):
+#        mucolumnind=3+num_components+3+compind
+#        desiredcolumns.append(datadump[:, mucolumnind])
+#
+#    for compind in range(0,num_components):
+#        speciescolumnind=3+compind
+#        desiredcolumns.append(datadump[:, speciescolumnind])
+#
+#    tempcolumnind=3+num_components+1
+#    desiredcolumns.append(datadump[:, tempcolumnind])
+#
+#    betacolumnind=tempcolumnind+1
+#    desiredcolumns.append(datadump[:, betacolumnind])
+#
+#    gcecolumnind=3+num_components
+#    desiredcolumns.append(datadump[:, gcecolumnind])
+#
+#    lowtexpcolumnind=0  #not really
+#    desiredcolumns.append(datadump[:, gcecolumnind])    #make this a real thing to actually account for low T expansion
+#
+#
+#
+#    #column for free energy
+#    emptyfreeenergy=numpy.empty(numpy.shape(desiredcolumns[-1]))
+#    emptyfreeenergy.fill(numpy.nan)
+#    desiredcolumns.append(emptyfreeenergy)
+#
+#    desireddata=numpy.array(desiredcolumns)
+#    desireddata=numpy.transpose(desireddata)
+#
+#    outputname=filename+".thin"
+#    numpy.savetxt(outputname, desireddata)
+#
+#    return
 
 def mu_ind(component, num_components):
     """Return index into chemical potential column of specified component
@@ -99,6 +99,15 @@ def energy_ind(num_components):
     """
     return beta_ind(num_components)+1
 
+def energy2_ind(num_components):
+    """Return index into average of square energy column
+
+    :num_components: integer of total number of components
+    :returns: integer
+
+    """
+    return energy_ind(num_components)+1
+
 def low_T_expansion_ind(num_components):
     """Return index into low temperature expansion column
 
@@ -106,7 +115,7 @@ def low_T_expansion_ind(num_components):
     :returns: integer
 
     """
-    return energy_ind(num_components)+1
+    return energy2_ind(num_components)+1
 
 
 def free_energy_ind(num_components):
@@ -174,6 +183,17 @@ def energy(data, num_components):
 
     """
     return data[:, energy_ind(num_components)]
+
+def energy2(data, num_components):
+    """Fetch average values for the square of the grand
+    canonical energy
+
+    :data: double numpy array of all monte values
+    :num_components: integer of total number of components
+    :returns: numpy array of grand canonical energy
+
+    """
+    return data[:, energy2_ind(num_components)]
 
 
 def low_T_expansion(data, num_components):

@@ -122,3 +122,43 @@ def sort_T_copy(data, num_components):
 
     reorder=numpy.lexsort((access.temperature(data, num_components),))
     return data[reorder]
+
+def heat_capacity(data, num_components):
+    """Use fluctuations in grand canonical energy to
+    calculate the heat capacity. Returns new array.
+
+    :type data: ndarray
+    :type num_components: int
+    :returs: ndarray
+    """
+
+    genavg2=access.energy(data, num_components)*access.energy(data,num_components)
+    gen2avg=access.energy2(data, num_components)
+    oneoverT=(access.temperature(data,num_components))**(-1)
+    betavals=access.beta(data,num_components)
+
+    heatcap=oneoverT*((gen2avg-genavg2)*betavals*oneoverT)
+    return heatcap
+
+def gibbs(data, num_components):
+    """Take Legendre transform of grand canonical
+    free energy and return new array with Gibbs
+    free energy
+
+    :type data: ndarray
+    :type num_components: int
+    :returs: ndarray
+    """
+
+    gcfree=access.free_energy(data,num_components)
+    gibbsfree=numpy.copy(gcfree)
+    
+    #for component in xrange(0,num_components):
+    #    currmu=access.mu(data,component,num_components)
+    #    curspecies=access.species(data,component,num_components)
+    #    print currmu*curspecies
+    #    gibbsfree+=currmu*curspecies
+
+    return gibbsfree
+    
+

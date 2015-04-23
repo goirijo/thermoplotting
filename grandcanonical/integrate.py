@@ -48,10 +48,9 @@ def mu(mupath, component, freeenergyref, num_components):
     """
     muvals=access.mu(mupath, component, num_components)
     speciesvals=access.species(mupath, component, num_components)
-    betaval=access.beta(mupath,num_components)
 
     intchunk=integrate.cumtrapz(speciesvals,muvals,initial=0)
-    freeenergy=-betaval*intchunk+freeenergyref
+    freeenergy=-intchunk+freeenergyref
 
     mupath[:,access.free_energy_ind(num_components)]=freeenergy
 
@@ -102,3 +101,30 @@ def beta(betapath, freeenergyref, num_components):
 
     return
     
+def cross(block1, block2, num_components, tolerance=0.0001):
+    """Return new set that contains only the points before and
+    after hysteresis crossing. Traverses points in whatever order
+    they're in, so be sure to sort by T/mu beforehand.
+
+    :block1: ndarray. Must match shape of block2
+    :block2: ndarray. Must match shape of block1
+    :returns: list of critical points
+
+    """
+    FEind=access.free_energy_ind(num_components)
+    criticals=[]
+
+    for point1, nextpoint1, point2, nextpoint2 in zip(block1[:], block1[1:], block2[:], block2[1:]):
+        oneabovetwo=bool(point1[FEind]-point2[FEind]>tolerance)
+        nextoneabovetwo=bool(nextpoint1[FEind]-nextpoint2[FEind]>tolerance)
+
+        if((oneabovetwo and (not nextoneabovetwo)) or ((not oneabovetwo) and nextoneabovetwo)):
+            criticals.append(point1)
+            criticals.append(point2)
+            criticals.append(nextpoint1)
+            criticals.append(nextpoint2)
+
+            return criticals
+    return criticals
+
+
