@@ -62,7 +62,7 @@ def endstate(data_list, component, tolerace=0.0001):
         point=numpy.array([point])
         comp=composition(point,component)
 
-        if(abs(1-comp)<tolerace and energy(point)<energy(returnpoint)):
+        if(abs(1-comp)<tolerace and energy(point)<=energy(returnpoint)):
             returnpoint=point
 
     return returnpoint[0]
@@ -82,7 +82,7 @@ def endstates_normal(data_list):
     endstates.append(endstate(data_list,1))
     endstates.append(endstate(data_list,2))
     statenormal=normal(endstates)
-
+    
     if statenormal[2]<0:
         statenormal=-statenormal
 
