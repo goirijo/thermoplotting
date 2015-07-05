@@ -25,3 +25,15 @@ def clobber():
 
     clobbered_array=numpy.vstack(collect())
     return clobbered_array
+
+def casm_energy3_to_thin(energyfile):
+    """Reads in a ternary casm energy file and strips columns down
+    to create a new .thin file that with only composition
+    and energy columns
+
+    :energyfile: output from `casm energy` command
+    :returns: void
+
+    """
+    energy_data=numpy.genfromtxt(energyfile,usecols=(2,3,0))
+    numpy.savetxt(energyfile+".thin", energy_data)

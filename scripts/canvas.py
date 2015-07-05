@@ -9,8 +9,8 @@ rc('xtick.major', width=3)
 rc('ytick.major', size=6) 
 rc('ytick.major', width=3) 
 
-plt.xlim([0.5,1.0])
-plt.ylim([400,1400])
+plt.ylim([-10.0/2048*1000,-20.0/2048*1000])
+plt.xlim([700,1050])
 
 fontsize=16
 ax=gca()
