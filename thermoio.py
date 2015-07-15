@@ -26,6 +26,28 @@ def clobber():
     clobbered_array=numpy.vstack(collect())
     return clobbered_array
 
+def casm_energy3_to_np(energyfile):
+    """Reads in a ternary casm energy file and strips columns down
+    to return a numpy array as if you'd just read a .thin file
+
+    :energyfile: output from `casm energy` command
+    :returns: numpy matrix
+
+    """
+    energy_data=numpy.genfromtxt(energyfile,usecols=(2,3,0))
+    return energy_data
+
+def casm_energy4_to_np(energyfile):
+    """Reads in a quaternary casm energy file and strips columns down
+    to return a numpy array as if you'd just read a .thin file
+
+    :energyfile: output from `casm energy` command
+    :returns: numpy matrix
+
+    """
+    energy_data=numpy.genfromtxt(energyfile,usecols=(2,3,4,0))
+    return energy_data
+
 def casm_energy3_to_thin(energyfile):
     """Reads in a ternary casm energy file and strips columns down
     to create a new .thin file that with only composition
@@ -35,5 +57,18 @@ def casm_energy3_to_thin(energyfile):
     :returns: void
 
     """
-    energy_data=numpy.genfromtxt(energyfile,usecols=(2,3,0))
+    energy_data=casm_energy3_to_np(energyfile)
     numpy.savetxt(energyfile+".thin", energy_data)
+
+def casm_energy4_to_thin(energyfile):
+    """Reads in a quaternary casm energy file and strips columns down
+    to create a new .thin file that with only composition
+    and energy columns
+
+    :energyfile: output from `casm energy` command
+    :returns: void
+
+    """
+    energy_data=casm_energy4_to_np(energyfile)
+    numpy.savetxt(energyfile+".thin", energy_data)
+
