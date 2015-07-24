@@ -176,7 +176,7 @@ def pruned_hull_facets(data_list):
     norm=numpy.array([0,0,1])
     facet_list=pruned_facets(facet_list, norm);
 
-    norm=numpy.array([0,1,0])
+    norm=numpy.array([1,1,0])
     facet_list=pruned_facets(facet_list, norm);
 
     norm=numpy.array([1,0,0])
