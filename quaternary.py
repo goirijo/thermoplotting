@@ -25,7 +25,7 @@ def composition(data_list, component):
     """
     if component==3:
         oneslist=numpy.ones(data_list.shape[0])
-        origincomp=oneslist-data_list[:,0]-data_list[:,1]-data_list[;,2]
+        origincomp=oneslist-data_list[:,0]-data_list[:,1]-data_list[:,2]
         return origincomp
 
     else:
