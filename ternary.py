@@ -109,6 +109,29 @@ def truncated_data(data_list):
 
     return numpy.array(belowceiling)
 
+def sliced_facets(facet_list,normal,refstate):
+    """Eliminates any facets that contain points above
+    above the specified plane
+
+    :facet_list: full convex hull facets
+    :normal: normal vector to plane to slice through
+    :refstate: reference point for normal
+    :returns: subset of the given facets
+
+    """
+    belowplane=[]
+    for facet in facet_list:
+        keep=False
+        for point in facet:
+            tvec=point-refstate
+            if(numpy.dot(tvec,normal)<=0):
+                keep=True
+                break
+        if(keep==True):
+            belowplane.append(facet)
+
+    return numpy.array(belowplane)
+
 
 def pruned_facets(facet_list, normalvec, tolerace=0.0001):
     """Goes through a list of facets and removes any facet
@@ -170,8 +193,11 @@ def pruned_hull_facets(data_list):
     :returns: array of facets (collection of 3 points)
 
     """
-    bottomdata=truncated_data(data_list)
-    facet_list=hull_facets(bottomdata)
+    facet_list=hull_facets(data_list)
+    
+    statenormal=endstates_normal(data_list)
+    refendstate=endstate(data_list,0)
+    facet_list=sliced_facets(facet_list,statenormal,refendstate)
 
     norm=numpy.array([0,0,1])
     facet_list=pruned_facets(facet_list, norm);
