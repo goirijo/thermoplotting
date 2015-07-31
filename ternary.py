@@ -124,7 +124,7 @@ def sliced_facets(facet_list,normal,refstate):
         keep=False
         for point in facet:
             tvec=point-refstate
-            if(numpy.dot(tvec,normal)<=0):
+            if(numpy.dot(tvec,normal)<0):
                 keep=True
                 break
         if(keep==True):
