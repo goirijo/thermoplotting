@@ -121,11 +121,11 @@ def sliced_facets(facet_list,normal,refstate):
     """
     belowplane=[]
     for facet in facet_list:
-        keep=False
+        keep=True
         for point in facet:
             tvec=point-refstate
-            if(numpy.dot(tvec,normal)<0):
-                keep=True
+            if(numpy.dot(tvec,normal)>0):
+                keep=False
                 break
         if(keep==True):
             belowplane.append(facet)
@@ -208,8 +208,8 @@ def pruned_hull_facets(data_list):
     norm=numpy.array([1,0,0])
     facet_list=pruned_facets(facet_list, norm);
 
-    norm=endstates_normal(data_list)
-    facet_list=pruned_facets(facet_list, norm);
+    #norm=endstates_normal(data_list)
+    #facet_list=pruned_facets(facet_list, norm);
 
     return facet_list
     
