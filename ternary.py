@@ -149,8 +149,8 @@ def pruned_facets(facet_list, normalvec, tolerace=0.0001):
     returnlist=[]
 
     for facet in facet_list:
-        crossvec=numpy.cross(normal(facet),normalvec)
-        if abs(abs(lin.norm(crossvec))-1) > tolerace:
+        facetnorm=normal(facet)
+        if abs(numpy.dot(normalvec,facetnorm)) < (1-tolerace):
             returnlist.append(facet)
 
     return numpy.array(returnlist)
@@ -199,7 +199,7 @@ def pruned_hull_facets(data_list):
     refendstate=endstate(data_list,0)
     facet_list=sliced_facets(facet_list,statenormal,refendstate)
 
-    norm=numpy.array([0,0,1])
+    norm=numpy.array([0,1,0])
     facet_list=pruned_facets(facet_list, norm);
 
     norm=numpy.array([1,1,0])
