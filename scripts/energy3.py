@@ -29,7 +29,7 @@ ax = fig.add_subplot(111, projection='3d')
 ax.set_zlim(-0.7,0)
 
 #ax.scatter(x,y,z, alpha=0)
-ax.add_collection3d(Poly3DCollection(faces, facecolors='w', linewidths=1, alpha=1.5))
+ax.add_collection3d(Poly3DCollection(faces, facecolors='w', linewidths=1, alpha=1.0))
 ax.scatter(x,y,z)
 ax.add_collection3d(Line3DCollection(faces, colors='k', linewidths=0.2, linestyles=':'))
 
