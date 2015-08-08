@@ -143,7 +143,7 @@ def truncated_data(data_list):
 
     # return numpy.array(belowceiling)
 
-def sliced_facets(facet_list, mynorm, refstate):
+def sliced_facets(facet_list, mynorm, refstate, tolerace=0.0001):
     """Eliminates any facets that contain points above
     above the specified plane
 
@@ -154,7 +154,7 @@ def sliced_facets(facet_list, mynorm, refstate):
 
     """
     # Find only the faces where all 3 points are below the reference normal
-    mask = numpy.all((numpy.dot((facet_list - refstate), mynorm) <= 0), axis=1)
+    mask = numpy.all((numpy.dot((facet_list - refstate), mynorm) <= tolerace), axis=1)
     # Return the masked array
     return facet_list[mask]
 
