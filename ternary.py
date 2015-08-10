@@ -237,6 +237,7 @@ def pruned_hull_facets(data_list):
     refendstate = endstate(data_list, 0)
     facet_list = sliced_facets(facet_list, statenormal, refendstate)
 
+
     norm = numpy.array([0, 1, 0])
     facet_list = pruned_facets(facet_list, norm)
 
