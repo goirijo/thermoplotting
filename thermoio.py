@@ -57,6 +57,11 @@ def safe_clobber(readfilelist):
         currentheader=header_split(filename)
         
         if finalheader!=currentheader:
+            print "Final header:"
+            print finalheader
+            print "Current header:"
+            print currentheader
+            print "Working on file "+str(filename)
             raise AssertionError("Header mismatch while loading files!")
 
         npdata=np.loadtxt(filename)

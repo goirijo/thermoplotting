@@ -8,8 +8,6 @@ import matplotlib.pyplot as plt
 from scipy import integrate
 
 
-datanames=glob.glob("./dataset/heating/*.txt")
-
 headerdict={"formation_energy":"U",
             "Ni":"N0",
             "Al":"N1",
@@ -20,21 +18,32 @@ headerdict={"formation_energy":"U",
             "mu_Al":"mu1"
             }
 
-testdata=tp.thermoarray.HyperArray(datanames, ["mu0","mu1","T"], headerdict)
-print testdata
+controlledvar=["mu0","mu1","T"]
 
-testdata.reverse("T")
+#Integrate heating run from low T to high T
+
+heatingnames=glob.glob("./dataset/heating_nuke_0/mu-*/tabulated_averages.txt")
+heatingdata=tp.ThermoArray(heatingnames, ["mu0","mu1","T"], headerdict)
+
+heatingphidata=heatingdata.data_view("phi")
+heatingbetadata=heatingdata.data_view("b")
+heatingPHIref=heatingphidata[0,:,:]
+
+heatingPHIdata=tp.grandcanonical.integrate.beta(heatingbetadata, heatingphidata, heatingPHIref, 0)
+
+#Generate references for cooling run integration: low mu to higher mu (high T)
+
+lowmunames=glob.glob("./dataset/lowmu_nuke_0/mu-*/tabulated_averages.txt")
+lowmudata=tp.ThermoArray(lowmunames, ["mu0","mu1","T"], headerdict)
+
+lowmuphidata=lowmudata.data_view("phi")
+lowmumudata=lowmudata.data_view("mu1")
 
 
-N1data=testdata.data_view("N1")
-phidata=testdata.data_view("phi")
-betadata=testdata.data_view("b")
-tempdata=testdata.data_view("T")
-phiref=phidata[0,:,:]
+#fig=plt.figure()
+#ax=fig.add_subplot(111)
+#ax.scatter(tempdata[:,0,0], phidata[:,0,0])
+#plt.show()
 
-PHIdata=tp.grandcanonical.integrate.beta(betadata, phidata, phiref, 0)
-
-fig=plt.figure()
-ax=fig.add_subplot(111)
-ax.scatter(tempdata[:,0,0], phidata[:,0,0])
-plt.show()
+coolingnames=glob.glob("./dataset/cooling_nuke_0/mu-*/tabulated_averages.txt")
+coolingdata=tp.ThermoArray(coolingnames, ["mu0","mu1","T"], headerdict)

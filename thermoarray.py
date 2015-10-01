@@ -2,7 +2,7 @@ import numpy as np
 import thermoio
 from misc import *
 
-class HyperArray(object):
+class ThermoArray(object):
 
     """Organize all your Monte Carlo data into a big N-dimensional
     array for easy sorting, viewing and integration. Expects headers
@@ -127,8 +127,6 @@ class HyperArray(object):
 
         """
         axis=self._controlled_var.index(parameter)
-        print self._controlled_var
-        print axis
         return axis
 
     def reverse(self, stringaxis, inplace=False):
