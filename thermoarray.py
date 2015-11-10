@@ -16,13 +16,14 @@ class ThermoArray(object):
 
     """
 
-    def __init__(self, readfilelist, controlled_var, headerdict={}):
+    def __init__(self, readfilelist, controlled_var, headerdict={}, decimals=0.000000001):
         """Read a bunch of files, stack them together, and reshape
         it all into an N-dimensional array with axis T, mu0, mu1...
 
         :readfilelist: List of files to read
         :controlled_var: List of strings, specify controlled parameters of data
         :headerdict: Translate the file headers to the internal standard
+        :decimals: Specify the floating point tolerance. Values will be rounded. Default is 1E-8
 
         """
 
@@ -57,6 +58,11 @@ class ThermoArray(object):
 
         controlled_data=np.vstack(controlled_data_list).T
         dependent_data=np.vstack(dependent_data_list).T
+
+        #squash floating point errors and +0/-0 issues
+        controlled_data[controlled_data==0.]=0.
+        dependent_data[dependent_data==0.]=0.
+
 
         #At this point there is:
         #_readfilelist, which is a list of all the files we read from
