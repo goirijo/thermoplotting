@@ -1,5 +1,42 @@
 import numpy as np
 
+def latmat(poscar):
+    """Extract the lattice from a POSCAR file
+    and return as column vector matrix
+
+    :poscar: string
+    :returns: ndarray
+
+    """
+    with open(poscar) as f:
+        junk=f.readline()
+        junk=f.readline()
+
+        vector=f.readline()
+        a=vector.split()
+        vector=f.readline()
+        b=vector.split()
+        vector=f.readline()
+        c=vector.split()
+        
+        lat=np.array([a,b,c]).T
+
+    return lat.astype(float)
+
+def latvol(lattice):
+    """Compute volume of lattice
+
+    :lattice: ndarray
+    :returns: float
+
+    """
+    a=lattice[:,0]
+    b=lattice[:,1]
+    c=lattice[:,2]
+
+    return np.dot(a,np.cross(b,c))
+
+
 def facet_intercept(facet):
     """Determine to intercept of the plane defined
     by a facet with the axis that define the composition
