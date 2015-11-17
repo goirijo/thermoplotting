@@ -30,7 +30,7 @@ def _C(startmat,endmat):
     C=np.dot(F.T,F)
     return C
 
-def _E(startmat,endmat):
+def hencky(startmat,endmat):
     """Calculate the Hencky strain to go from
     start to end
 
@@ -73,7 +73,7 @@ def _e5(xz):
 def _e6(xy):
     return np.sqrt(2)*xy
 
-def strain_parameters(mat):
+def parameters(mat):
     """Calculate the six strain order parameters
     for the given strain metric
 
@@ -91,18 +91,3 @@ def strain_parameters(mat):
     e6=_e6(xy)
 
     return e1,e2,e3,e4,e5,e6
-
-fcc=latmat("./fcc")
-bcc=latmat("./bcc")
-
-print latvol(fcc)
-print latvol(bcc)
-
-
-E=_E(fcc,bcc)
-
-print E
-
-e1,e2,e3,e4,e5,e6=strain_parameters(E)
-
-print e1,e2,e3
