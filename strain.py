@@ -91,3 +91,32 @@ def parameters(mat):
     e6=_e6(xy)
 
     return e1,e2,e3,e4,e5,e6
+
+def min_scores(scores):
+    """Given a tuple of scores for different types
+    of structures, return an array of indices to the
+    best (lowest) scores.
+
+    :scores: tuple of array of float. A list of scores for
+    each structure you try to map to
+    :returns: list of int
+
+    """
+    scoremat=np.vstack(scores).T
+    bestscore=np.array([np.argmin(row) for row in scoremat])
+    return bestscore
+
+def scel_sizes(namelist):
+    """Run through the list of SCEL names and return an
+    array of the same size that notes the size of each
+    supercell with an integer
+
+    :namelist: ndarray(dtype=str)
+    :returns: ndarray(dtype=int)
+
+    """
+    getsize = lambda s : s[4:s.index("_")]
+
+    sizes=np.array([getsize(name) for name in namelist])
+    return sizes.astype(int)
+    
