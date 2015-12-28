@@ -1,5 +1,6 @@
 import glob
 import numpy as np
+import json
 
 def collect(directory='./'):
     """Collect all the data in *.thdat files and return values as np array
@@ -26,11 +27,11 @@ def clobber():
     clobbered_array=np.vstack(collect())
     return clobbered_array
 
-def header_split(filename):
+def txt_split(filename):
     """Strip '#' from first line and get string list of column
 
     :filename: file to get header from
-    :returns: list of strings
+    :returns: [string],ndarray
 
     """
     with open(filename,'r') as f:
@@ -39,22 +40,81 @@ def header_split(filename):
         header=header.translate(None,'#')
         headernames=header.split()
 
-    return headernames
+    npdata=np.loadtxt(filename)
+    return headernames,npdata
 
-def safe_clobber(readfilelist):
-    """Strip header from list of files and stack data onto
-    a np array. Checks to make sure all headers match.
+def json_split(filename):
+    """Return the keys from a Monte Carlo results.json as
+    a list of strings. Functionally the same as header_split
+    but for json files.
 
-    :readfilelist: List of files to read
-    :returns: ndarray
+    :filename: string
+    :returns: [string],ndarray
 
     """
-    finalheader=header_split(readfilelist[-1])
+    datadump=open(filename).read()
+    jsonresults=json.loads(datadump)
+
+    headernames=jsonresults.keys()
+    datacolumns=[np.array(jsonresults[key],dtype=float) for key in headernames]
+
+    return headernames,np.vstack(datacolumns).T
+
+def truncate((headerstrings,datacolumns),headerdict):
+    """After reading in a file, drop all the columns
+    not in headerdict, and rename the ones that are there
+    appropriately.
+
+    :headerstrings: [string]
+    :datacolumns: ndarray
+    :headerdict: dictionary
+    :returns: [string],ndarray
+
+    """
+    if len(headerdict)==0:
+        return headerstrings,datacolumns
+
+    truncheaders=[]
+    trunccols=[]
+    for key in headerdict:
+        idx=headerstrings.index(key)
+
+        truncheaders.append(headerdict[key])
+        trunccols.append(datacolumns[:,idx])
+
+    return truncheaders,np.vstack(trunccols).T
+
+def header_split(filename,headerdict):
+    """Get data in columns with a corresponding set of strings
+    for each one. Works on txt and json.
+
+    :filename: string
+    :returns: [string],ndarray
+
+    """
+    if filename[-4::]==".txt":
+        return truncate(txt_split(filename),headerdict)
+    elif filename[-5::]==".json":
+        return truncate(json_split(filename),headerdict)
+    else:
+        raise RuntimeError("File name "+filename+" was neither json or txt")
+
+
+def safe_clobber(readfilelist,headerdict={}):
+    """Strip header from list of files and stack data onto
+    a np array. Checks to make sure all headers match.
+    Expects txt files (header with columns).
+
+    :readfilelist: List of files to read
+    :returns: [string],ndarray
+
+    """
+    finalheader,_=header_split(readfilelist[-1],headerdict)
 
     datalist=[]
 
     for filename in readfilelist:
-        currentheader=header_split(filename)
+        currentheader,npdata=header_split(filename,headerdict)
         
         if finalheader!=currentheader:
             print "Final header:"
@@ -64,11 +124,11 @@ def safe_clobber(readfilelist):
             print "Working on file "+str(filename)
             raise AssertionError("Header mismatch while loading files!")
 
-        npdata=np.loadtxt(filename)
         datalist.append(npdata)
     
     dataclob=np.vstack(datalist)
-    return dataclob
+
+    return currentheader,dataclob
 
 def casm_energy3_to_np(energyfile):
     """Reads in a ternary casm energy file and strips columns down

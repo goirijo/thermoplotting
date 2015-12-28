@@ -22,24 +22,22 @@ class ThermoArray(object):
 
         :readfilelist: List of files to read
         :controlled_var: List of strings, specify controlled parameters of data
-        :headerdict: Translate the file headers to the internal standard
+        :headerdict: Translate the file headers to the internal standard, drop all other fields
         :decimals: Specify the floating point tolerance. Values will be rounded. Default is 1E-8
 
         """
 
         self._readfilelist = readfilelist
-        self._headerdict=headerdict
+        #self._headerdict=headerdict
 
         try:
-            dataclob=thermoio.safe_clobber(readfilelist)
+            self._headerwords,dataclob=thermoio.safe_clobber(readfilelist,headerdict)
         except:
             print "Bad input data! All input must be in the same order."
             raise
 
-        self._headerwords=thermoio.header_split(readfilelist[0])
-        self._standardheaderwords=[headerdict[field] if field in headerdict else field for field in self._headerwords]
-
-        #translate the header to the internal standard
+        #self._headerwords=thermoio.header_split(readfilelist[0])
+        #self._standardheaderwords=[headerdict[field] if field in headerdict else field for field in self._headerwords]
 
 
         #store dependent and independent variables in separate lists
@@ -47,7 +45,7 @@ class ThermoArray(object):
         controlled_data_list=[]
         self._dependent_var=[]
         dependent_data_list=[]
-        for index, var in enumerate(self._standardheaderwords):
+        for index, var in enumerate(self._headerwords):
             if(var in controlled_var):
                 self._controlled_var.append(var)
                 controlled_data_list.append(dataclob[:,index])
@@ -92,8 +90,8 @@ class ThermoArray(object):
         :returns: tuple
 
         """
-        if field in self._headerdict:
-            field=self._headerdict[field]
+        #if field in self._headerdict:
+        #    field=self._headerdict[field]
 
         pretuple=[slice(None)]*(len(self._params_shape)+1)
 
@@ -102,6 +100,8 @@ class ThermoArray(object):
         elif field in self._dependent_var:
             pretuple[0]=self._dependent_var.index(field)
         else:
+            print self._controlled_var
+            print self._dependent_var
             raise KeyError("The field "+str(field)+" was neither in the controlled or dependent variables lists")
 
         return tuple(pretuple)
