@@ -30,18 +30,23 @@ heatingphidata=heatingdata.data_view("phi")
 heatingbetadata=heatingdata.data_view("b")
 heatingPHIref=heatingphidata[0,:,:]
 
+
 heatingPHIdata=tp.grandcanonical.integrate.beta(heatingbetadata, heatingphidata, heatingPHIref, 0)
-heatingdata=heatingdata.push_back(heatingPHIdata,"omega")
+
+#Generate references for cooling run integration: low mu to higher mu (high T)
+
+lowmunames=glob.glob("./dataset/lowmu_nuke_0/mu-*/tabulated_averages.txt")
+lowmudata=tp.ThermoArray(lowmunames, ["mu0","mu1","T"], headerdict)
+
+lowmuphidata=lowmudata.data_view("phi")
+lowmumudata=lowmudata.data_view("mu1")
 
 
 fig=plt.figure()
-ax=fig.add_subplot(311)
-y1=heatingPHIdata[:,0,0]
-ax.scatter(heatingdata.data_view("T")[:,0,0], y1)
-ax=fig.add_subplot(312)
-y2=heatingdata.data_view("omega")[:,0,0]
-ax.scatter(heatingdata.data_view("T")[:,0,0],y2)
-ax=fig.add_subplot(313)
-y3=y2-y1
-ax.scatter(heatingdata.data_view("T")[:,0,0],y3)
+ax=fig.add_subplot(111)
+#ax.scatter(tempdata[:,0,0], phidata[:,0,0])
+ax.scatter(heatingdata.data_view("T")[:,0,0], heatingPHIdata[:,0,0])
 plt.show()
+
+#coolingnames=glob.glob("./dataset/cooling_nuke_0/mu-*/tabulated_averages.txt")
+#coolingdata=tp.ThermoArray(coolingnames, ["mu0","mu1","T"], headerdict)

@@ -107,7 +107,20 @@ def reverse(ndarray, axis, inplace=False):
     else:
         return resorted
 
-def minimize(arraylist):
+def stack(arraylist,axis=0):
+    """Take a bunch of arrays with matching dimensions
+    and stack them along a new axis.
+
+    :arraylist: [ndarray]
+    :axis: int
+    :returns: ndarray
+
+    """
+    candidates=[np.expand_dims(data,axis=0) for data in arraylist]
+    stack=np.concatenate(candidates,axis=0)
+    return stack
+    
+def amin_stack(arraylist):
     """Given a list of arrays of matching shapes, return
     a new array of the same shape that has all the minimum
     values from the list.
@@ -116,5 +129,19 @@ def minimize(arraylist):
     :returns: ndarray
 
     """
-    mininds=np.argmin(arraylist,axis=0)
-    return np.array([arraylist[midx][idx] for idx, midx in np.ndenumerate(mininds)]).reshape(mininds.shape)
+    candidates=[np.expand_dims(data,axis=0) for data in arraylist]
+    stack=np.concatenate(candidates,axis=0)
+    return np.amin(stack,axis=0)
+
+def argmin_stack(arraylist):
+    """Given a list of arrays of matching shapes, return
+    a new array of the same shape that has all the minimum
+    indexes from the list.
+
+    :arraylist: array of ndarray
+    :returns: ndarray
+
+    """
+    candidates=[np.expand_dims(data,axis=0) for data in arraylist]
+    stack=np.concatenate(candidates,axis=0)
+    return np.argmin(stack,axis=0)
