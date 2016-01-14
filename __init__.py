@@ -4,6 +4,6 @@ import ternary
 import quaternary
 import grandcanonical as gc
 import strain
-#import plot
+import plot
 from misc import *
 from thermoarray import *
