@@ -1,5 +1,6 @@
 import numpy as np
 import thermoio
+import copy
 from misc import *
 
 class ThermoArray(object):
@@ -116,6 +117,32 @@ class ThermoArray(object):
             return self._controlled_params[tupindx]
         else:
             return self._dependent_params[tupindx]
+
+    def top_data_view(self, datafield, axisfield):
+        """Return the first value along the axisfield dimension
+        of the datafield data
+
+        :datafield: string
+        :axisfield: string
+        :returns: ndarray
+
+        """
+        data=self.data_view(datafield)
+        axis=self.axis(axisfield)
+        return top_view(data,axis)
+    
+    def bottom_data_view(self, datafield, axisfield):
+        """Return the last value along the axisfield dimension
+        of the datafield data
+
+        :datafield: string
+        :axisfield: string
+        :returns: ndarray
+
+        """
+        data=self.data_view(datafield)
+        axis=self.axis(axisfield)
+        return bottom_view(data,axis)
     
     def nan_fields(self):
         """Make array of NaN with appropriate shape for dealing with self data
@@ -139,11 +166,54 @@ class ThermoArray(object):
         """Invert the order along a given axis
         :stringaxis: string label for axis
         :inplace: bool, make true if you want views into data updated
-        :returns: void
+        :returns: ThermoArray
 
         """
         axis=self.axis(stringaxis)+1
-        self._controlled_params=reverse(self._controlled_params, axis)
-        self._dependent_params=reverse(self._dependent_params, axis)
-        return
+        self._controlled_params=reverse(self._controlled_params, axis,inplace)
+        self._dependent_params=reverse(self._dependent_params, axis,inplace)
+        return self
 
+    def push_back(self, new_param, param_name):
+        """Append a new dependent parameter to the end
+        of the list.
+
+        :new_param: ndarray (should have "data_view" dimensions)
+        :param_name: string
+        :returns: ThermoArray
+
+        """
+        if param_name in self._dependent_var:
+            raise RuntimeError(param_name+" is already a dependent parameter!")
+
+        self._dependent_var.append(param_name)
+        self._dependent_params=np.append(self._dependent_params,[new_param],axis=0)
+
+        return self
+
+    def _template(self):
+        """Return copy of self with all dependent parameter values as nan
+        :returns: TODO
+
+        """
+        duplicate=copy.deepcopy(self)
+        duplicate._dependent_params[...]=np.NaN
+        return duplicate
+
+    @staticmethod
+    def minimize(arraylist,axistag):
+        """Create a new ThermoArray by taking the values corresponding
+        to the minimum values of a certain parameter (e.g. free energy)
+
+        :arraylist: [ThermoArray], must match dimensions
+        :axistag: string
+        :returns: ThermoArray
+
+        """
+        mininds=argmin_stack([data.data_view(axistag) for data in arraylist])
+        minimizedarray=arraylist[0]._template()
+
+        paramstack=stack([data._dependent_params for data in arraylist])
+        minimizedarray._dependent_params=np.choose(mininds,paramstack)
+
+        return minimizedarray
