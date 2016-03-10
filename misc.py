@@ -90,7 +90,7 @@ def reverse(ndarray, axis, inplace=False):
     along the given axis
     
     :ndarray:
-    :axis:
+    :axis: int
     :inplace: bool
     :returns: ndarray
     """
@@ -145,3 +145,33 @@ def argmin_stack(arraylist):
     candidates=[np.expand_dims(data,axis=0) for data in arraylist]
     stack=np.concatenate(candidates,axis=0)
     return np.argmin(stack,axis=0)
+
+def nearest_entry(data,values,columns=None):
+    """From an array, find the entry that most closely
+    matches the given values. E.g. try to find the entry
+    for z with the closest given x,y values.
+
+    Do not attempt on anything more complicated than a 2D table.
+
+
+    :data: ndarray
+    :values: tuple(float), entry values
+    :columns: tuple(int), entry columns
+    :axis: int
+    :returns: int
+
+    """
+    if columns is None:
+        columns=np.arange(len(values))
+
+    if len(columns)!=len(values):
+        raise ValueError("There must be one column index per column value!")
+    
+    zerosum=np.zeros(len(data))
+
+    for val,ind in zip(values,columns):
+        zerosum+=abs(data[:,ind]-val)
+
+    return np.argmin(zerosum)
+
+

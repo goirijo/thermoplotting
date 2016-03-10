@@ -32,7 +32,7 @@ def _C(startmat,endmat):
 
 def hencky(startmat,endmat):
     """Calculate the Hencky strain to go from
-    start to end
+    start to end. Expects column vectors (use misc.latmat)
 
     :startmat: ndarray
     :endmat: ndarray

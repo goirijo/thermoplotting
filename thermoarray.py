@@ -31,10 +31,14 @@ class ThermoArray(object):
         self._readfilelist = readfilelist
         #self._headerdict=headerdict
 
+        self._headerwords,dataclob=thermoio.safe_clobber(readfilelist,headerdict)
+
         try:
             self._headerwords,dataclob=thermoio.safe_clobber(readfilelist,headerdict)
         except:
             print "Bad input data! All input must be in the same order."
+            print self._headerwords
+            print headerdict
             raise
 
         #self._headerwords=thermoio.header_split(readfilelist[0])
