@@ -122,6 +122,15 @@ class ThermoArray(object):
         else:
             return self._dependent_params[tupindx]
 
+    def __getitem__(self, field):
+        """Calls data_view
+
+        :field: str
+        :returns: np view
+
+        """
+        return self.data_view(field)
+
     def top_data_view(self, datafield, axisfield):
         """Return the first value along the axisfield dimension
         of the datafield data
@@ -203,6 +212,34 @@ class ThermoArray(object):
         duplicate=copy.deepcopy(self)
         duplicate._dependent_params[...]=np.NaN
         return duplicate
+
+    def controlled_parameter_values(self, parameter):
+        """Get a list of the values of one of the controlled parameters
+
+        :parameter: str
+        :returns: 1D np
+
+        """
+        if parameter not in self._controlled_var:
+            raise KeyError("The field "+str(field)+" was is not controlled")
+
+        pretuple=[0]*(len(self._params_shape)+1)
+        pretuple[0]=self._controlled_var.index(parameter)
+        axis=self.axis(parameter)
+        pretuple[axis+1]=slice(None)
+        
+        return self._controlled_params[pretuple]
+        
+
+    def mask_list_along(self, parameter):
+        """Create a list on indexes that correspond to slices along a particular
+        parameter
+
+        :parameter: str
+        :returns: list of np indexes
+
+        """
+        return [np.where(self.data_view(parameter)==v) for v in self.controlled_parameter_values(parameter) ]
 
     @staticmethod
     def minimize(arraylist,axistag):

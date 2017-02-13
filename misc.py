@@ -1,4 +1,8 @@
 import numpy as np
+import pandas as pd
+import casm.project
+import os
+import hashlib
 
 def latmat(poscar):
     """Extract the lattice from a POSCAR file
@@ -9,8 +13,8 @@ def latmat(poscar):
 
     """
     with open(poscar) as f:
-        junk=f.readline()
-        junk=f.readline()
+        name=f.readline()
+        scale=f.readline()
 
         vector=f.readline()
         a=vector.split()
@@ -21,7 +25,7 @@ def latmat(poscar):
         
         lat=np.array([a,b,c]).T
 
-    return lat.astype(float)
+    return float(scale)*lat.astype(float)
 
 def latvol(lattice):
     """Compute volume of lattice
@@ -173,5 +177,132 @@ def nearest_entry(data,values,columns=None):
         zerosum+=abs(data[:,ind]-val)
 
     return np.argmin(zerosum)
+
+def configlist_path(proj=None):
+    if proj==None:
+        proj=casm.project.Project()
+
+    casmroot=proj.path
+    return os.path.join(casmroot,".casm","config_list.json")
+
+def shatter_path(pathname):
+    """Run os.path.split until there's nothing left to split
+    and return all the components as a list
+
+    :pathname: str
+    :returns: list of str
+
+    """
+    pathname=os.path.normpath(pathname)
+    return pathname.split(os.sep)
+
+
+def casm_query(configlist,queryargs,proj=None):
+    """Inefficiently query casm by specifying a list of confignames
+    rather than a selection path. Assumes you want the project you're
+    sitting in.
+    Does not guarantee keeping the order of the configlist!
+
+    :configlist: list of str
+    :queryargs: list of str (casm query --column arguments)
+    :returns: Pandas DataFrame
+
+    """
+    if proj==None:
+        proj=casm.project.Project()
+
+    requestednames=("configname" in queryargs)
+
+    if not requestednames:
+        queryargs.append("configname")
+
+    subquery=casm.project.query(proj,queryargs,selection=simulated_selection(proj,configlist))
+
+    if not requestednames:
+        subquery=subquery.drop("configname",1)
+    
+    #return subquery.convert_objects(convert_numeric=True)   #Things get stupidly stored as strings without this
+    return subquery.apply(pd.to_numeric, errors="ignore") #Things get stupidly stored as strings without this
+
+def simulated_selection(proj,configlist):
+    """Simulate a selection file by specifying a list of configurations
+    that you want selected
+
+    :configlist: list of str
+    :returns: StringIO
+
+    """
+    selectionstr="#configname selected\n"
+    for c in configlist:
+        selectionstr+=c
+        selectionstr+=" 1\n"
+
+    filename=hashlib.md5(selectionstr).hexdigest()+"_selection.txt"
+    filepath=os.path.join(os.sep, "tmp",filename)
+
+    selectionfile=open(filepath, 'w')
+    selectionfile.write(selectionstr)
+
+    return casm.project.Selection(proj, filepath)
+
+def scrub_query(queried_data):
+    """Drop all rows that contain an "unknown" value
+
+    :queried_data: Pandas DataFrame
+    :returns: Pandas DataFra
+
+    """
+    subset=queried_data
+    for col in queried_data:
+        if subset[col].dtype==object:
+            subset=subset[queried_data[col]!="unknown"]                              
+    return subset.apply(pd.to_numeric, errors="ignore")
+
+def all_confignames(proj=None):
+    """Get list of all the confignames
+    
+    :returns" Pandas list of str
+    """
+    if proj==None:
+        proj=casm.project.Project()
+
+    configdump=casm.project.query(proj, ["configname"], all=True)
+
+    return configdump["configname"]
+
+def calculated_confignames(invert=False,proj=None):
+    """Get list of all the confignames that have is_calculated==1
+    
+    :invert: bool
+    :returns" list of str
+    """
+    if proj==None:
+        proj=casm.project.Project()
+
+    configdump=casm.project.query(proj, ["configname", "is_calculated"], all=True)
+
+    if not invert:
+        subset=configdump.loc[configdump["is_calculated"]==1]
+    else:
+        subset=configdump.loc[configdump["is_calculated"]!=1]
+
+    return subset["configname"]
+
+def confignames_of_size(sizes,proj=None):
+    """Get list of the confignames that have a supercell
+    of the specified sizes
+
+    :sizes: list of int
+    :returns: list of str
+
+    """
+    if proj==None:
+        proj=casm.project.Project()
+
+    configdump=casm.project.query(proj,["configname"],all=True)
+
+    sizes=["SCEL"+str(s)+"_" for s in sizes]
+    subset=[config for config in configdump["configname"] if any(size in config for size in sizes)]
+    return subset
 
 

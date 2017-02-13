@@ -1,8 +1,6 @@
-"""A Docstring"""
-
 import scipy.spatial as spa
 import scipy.linalg as lin
-import numpy
+import numpy as np
 
 def prepare_input(file_name):       #pylint: disable=unused-argument
     """Read in from list of files and output them as new .thin
@@ -24,18 +22,8 @@ def hull_facets(data_list):
     :returns: array of facets (collection of 3 points)
 
     """
-    # tri = spa.Delaunay(data_list)     #pylint: disable=no-member
-    # simplex = tri.find_simplex
-    # facets = []
-    # for i, j, k in new_tri.simplices:
-    #     facets.append(data_list[[i, j, k]])
-
-    # return facets
-
     # scipy.spatial.Delauny is numerically unstable, we use scipy.sptial.ConvexHull instead.
     new_tri = spa.ConvexHull(data_list) #pylint: disable=no-member
-    # the ConvexHull object contains members indexing into the simplices, which can be used
-    #   on the (referenced) set of points from data_list
     return new_tri.points[new_tri.simplices]
 
 def normal(three_points):
@@ -48,18 +36,12 @@ def normal(three_points):
     """
 
     # get our vector differences w.r.t. the first end-state and roll
-    # vecs = numpy.roll(three_points[1:] - three_points[0], -1, 0)
     vecs = (three_points[1:] - three_points[0])
-    base_list = numpy.arange(three_points.shape[1])
+    base_list = np.arange(three_points.shape[1])
 
-    crossvec = numpy.array([(-1)**i * numpy.linalg.det(vecs[:, base_list[base_list != i]])
+    crossvec = np.array([(-1)**i * np.linalg.det(vecs[:, base_list[base_list != i]])
                             for i in range(three_points.shape[1])])
 
-
-    # vec1 = three_points[0]-three_points[1]
-    # vec2 = three_points[0]-three_points[2]
-
-    # crossvec = numpy.cross(vec1, vec2)
     return crossvec/lin.norm(crossvec)
 
 def endstate(data_list, component, tolerance=0.0001):
@@ -71,23 +53,14 @@ def endstate(data_list, component, tolerance=0.0001):
     :returns: numpy array of size 3
 
     """
-    # maxindex=numpy.argmax(energy(data_list))
-    # returnpoint=numpy.array([data_list[maxindex]])
-    # for point in data_list:
-    #     point=numpy.array([point])
-    #     comp=composition(point,component)
-
-    #     if(abs(1.-comp)<tolerance and energy(point)<=energy(returnpoint)):
-    #         returnpoint=point
-    # return returnpoint[0]
     # Grab the max energy for reference
     returnpoint = data_list[data_list[:, -1].argmax()]
     # Mask to entries along our selected axis, with lower energy
-    mask = numpy.logical_and(data_list[:, -1] <= data_list[:, -1].max(),
+    mask = np.logical_and(data_list[:, -1] <= data_list[:, -1].max(),
                              abs(composition(data_list, component) - 1.0) < tolerance)
 
     # Only move forward if mask has at least one 'true' value
-    if numpy.any(mask):
+    if np.any(mask):
         returnpoint = data_list[mask][data_list[mask][:, -1].argmin()]
     # Otherwise use our default value
     else:
@@ -104,13 +77,8 @@ def endstates_normal(data_list):
     :returns: numpy array
 
     """
-    # endstates=[]
-    # endstates.append(endstate(data_list,0))
-    # endstates.append(endstate(data_list,1))
-    # endstates.append(endstate(data_list,2))
-
     # Use a list comprehension to grab the end states for every composition axes
-    endstates = numpy.array([endstate(data_list, i) for i in range(data_list.shape[1])])
+    endstates = np.array([endstate(data_list, i) for i in range(data_list.shape[1])])
     statenormal = normal(endstates)
 
     if statenormal[-1] < 0.:
@@ -133,15 +101,7 @@ def truncated_data(data_list):
     refendstate = endstate(data_list, 0)
 
     # Return only entries that are below the plane defined by the 3 end-states
-    return data_list[numpy.dot(data_list - refendstate, statenormal) <= 0]
-
-    # belowceiling=[]
-    # for point in data_list:
-    #     tvec=point-refendstate
-    #     if(numpy.dot(tvec,statenormal)<=0):
-    #         belowceiling.append(point)
-
-    # return numpy.array(belowceiling)
+    return data_list[np.dot(data_list - refendstate, statenormal) <= 0]
 
 def sliced_facets(facet_list, mynorm, refstate, tolerace=0.0001):
     """Eliminates any facets that contain points above
@@ -154,22 +114,9 @@ def sliced_facets(facet_list, mynorm, refstate, tolerace=0.0001):
 
     """
     # Find only the faces where all 3 points are below the reference normal
-    mask = numpy.all((numpy.dot((facet_list - refstate), mynorm) <= tolerace), axis=1)
+    mask = np.all((np.dot((facet_list - refstate), mynorm) <= tolerace), axis=1)
     # Return the masked array
     return facet_list[mask]
-
-    # belowplane=[]
-    # for facet in facet_list:
-    #     keep=True
-    #     for point in facet:
-    #         tvec=point-refstate
-    #         if(numpy.dot(tvec,normal)>0):
-    #             keep=False
-    #             break
-    #     if(keep==True):
-    #         belowplane.append(facet)
-
-    # return numpy.array(belowplane)
 
 def pruned_facets(facet_list, normalvec, tolerace=0.0001):
     """Goes through a list of facets and removes any facet
@@ -188,10 +135,10 @@ def pruned_facets(facet_list, normalvec, tolerace=0.0001):
 
     for facet in facet_list:
         facetnorm = normal(facet)
-        if abs(numpy.dot(normalvec, facetnorm)) < (1.0-tolerace):
+        if abs(np.dot(normalvec, facetnorm)) < (1.0-tolerace):
             returnlist.append(facet)
 
-    return numpy.array(returnlist)
+    return np.array(returnlist)
 
 def composition(data_list, component):
     """Returns one composition column from the given data, which
@@ -203,9 +150,6 @@ def composition(data_list, component):
 
     """
     if component == data_list.shape[1]-1:
-    # if component == 2:
-        # oneslist = numpy.ones(data_list.shape[0])
-        # origincomp = oneslist-data_list[:, 0]-data_list[:, 1]
         origincomp = 1.0 - data_list[:, :-1].sum(axis=1)
         return origincomp
 
@@ -238,13 +182,13 @@ def pruned_hull_facets(data_list):
     facet_list = sliced_facets(facet_list, statenormal, refendstate)
 
 
-    norm = numpy.array([0, 1, 0])
+    norm = np.array([0, 1, 0])
     facet_list = pruned_facets(facet_list, norm)
 
-    norm = numpy.array([1, 1, 0])
+    norm = np.array([1, 1, 0])
     facet_list = pruned_facets(facet_list, norm)
 
-    norm = numpy.array([1, 0, 0])
+    norm = np.array([1, 0, 0])
     facet_list = pruned_facets(facet_list, norm)
 
     #norm=endstates_normal(data_list)
@@ -260,22 +204,116 @@ def equil_trans(data_list):
     :returns: double numpy array with transformed composition values
 
     """
-    transmat = numpy.array([[1, 0.5, 0], [0, 3**(0.5)/2, 0], [0, 0, 1]])
+    transmat = np.array([[1, 0.5, 0], [0, 3**(0.5)/2, 0], [0, 0, 1]])
 
     # If we have 2 or 1 dimnesions, we can directly dot
     if data_list.ndim < 3:
-        return numpy.dot(transmat, data_list.T).T
+        return np.dot(transmat, data_list.T).T
     # Otherwise use recursion to dot each entry in the data_list
     else:
-        return numpy.array([equil_trans(dlist) for dlist in data_list])
+        return np.array([equil_trans(dlist) for dlist in data_list])
 
-    # returndata=[]
-    # for point in data_list:
-    #     if point.ndim==1:
-    #         point=numpy.dot(transmat,point)
-    #     else:
-    #         point=equil_trans(point)
 
-    #     returndata.append(point)
+def point_is_over_facet(point,facet):
+    """Given a point, and a facet of a convex hull, determine
+    if the point lies above the given facet along the z (energy)
+    axis. This is meant to identify which facet of the convex hull
+    should be used to calculate the hull distance.
 
-    # return numpy.array(returndata)
+    Use this to understand algorithm:
+    http://blackpawn.com/texts/pointinpoly/
+
+    Basically in the 2D space, for the point p, and three vertices
+    of the triangle r1, r2 and r3, redefine p with new basis vectors
+    in terms of r1, r2 and r3.
+
+    p-r0=u*(r1-r0)+v*(r2-r0)
+    v2=u*v0+v*v1
+
+    v2v0=u*v0v0+v*v1v0
+    v2v1=u*v0v1+v*v1v1
+
+    Solve for u and v, which tells you if p is within the triangle.
+    It's outside if u or v is negative.
+    It's outside if u or v is greater than 1.
+    It's outside if u+v is greater than 1.
+
+    :point: single coordinate as np
+    :facet: three coordinates as np
+    :returns: bool
+
+    """
+    p=point[0:2]
+    r0=facet[0,0:2]
+    r1=facet[1,0:2]
+    r2=facet[2,0:2]
+
+
+    v0=r1-r0
+    v1=r2-r0
+    v2=p-r0
+
+    u=(np.dot(v2,v1)*np.dot(v1,v0)-np.dot(v2,v0)*np.dot(v1,v1))/(np.dot(v0,v1)*np.dot(v1,v0)-np.dot(v0,v0)*np.dot(v1,v1))
+    v=(np.dot(v2,v0)*np.dot(v0,v1)-np.dot(v2,v1)*np.dot(v0,v0))/(np.dot(v1,v0)*np.dot(v0,v1)-np.dot(v1,v1)*np.dot(v0,v0))
+
+    #Round to some decimal points to avoid floating noise
+    u=round(u,10)
+    v=round(v,10)
+
+
+    if v < 0 or u < 0 or v > 1 or u > 1 or v+u > 1:
+        return False
+    else:
+        return True
+
+def find_facet_under_point(point, pruned_facets):
+    """Given a list of facets that make up the convex hull (assumes that
+    the top of the hull and the sides were pruned off, not sure if that makes
+    a difference), find which facet lies directly below the given point.
+
+    :point: single coordinate as np
+    :pruned_facets: list of three coordinates as np
+    :returns: three coordinates as np
+
+    """
+    for f in pruned_facets:
+        if point_is_over_facet(point,f):
+            return f
+
+    return None
+
+
+def distance_from_hull(point, pruned_facets):
+    """Determine the distance of a point from the convex hull. The given
+    convex hull must have had the top and sides pruned off!
+
+    :point: single coordinate as np
+    :pruned_facets: list of three coordinates as np
+    :returns: float
+
+    """
+    facet=find_facet_under_point(point,pruned_facets)
+    assert(point_is_over_facet(point,facet))
+
+    #translate everything so the point is at the origin
+    transfacet=facet-point
+
+    #Three point define a plane now
+    p1,p2,p3=transfacet
+
+    #Two vectors spawn the plane
+    v1=p3-p1
+    v2=p2-p1
+
+    #And the normal vector is used to define ax+by+cz=d
+    n=np.cross(v1,v2)
+    a,b,c=n
+    d=np.dot(n,p3)
+
+    #The intercept is defined by z when x and y are 0
+    z=d/c
+
+    #The distance from the hull is measured in the other direction
+    return -z
+
+    
