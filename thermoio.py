@@ -101,7 +101,7 @@ def header_split(filename,headerdict):
             raise RuntimeError("File name "+filename+" was neither json or txt")
 
     except:
-        raise ValueError("Something went horribly wrong with your input file "+filename+". Check for non equilibrated conditions.)
+        raise ValueError("Something went horribly wrong with your input file "+filename+". Check for non equilibrated conditions.")
 
 
 

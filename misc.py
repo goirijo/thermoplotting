@@ -3,6 +3,7 @@ import pandas as pd
 import casm.project
 import os
 import hashlib
+from scipy.spatial.distance import squareform, pdist
 
 def latmat(poscar):
     """Extract the lattice from a POSCAR file
@@ -148,7 +149,8 @@ def argmin_stack(arraylist):
     """
     candidates=[np.expand_dims(data,axis=0) for data in arraylist]
     stack=np.concatenate(candidates,axis=0)
-    return np.argmin(stack,axis=0)
+    #return np.argmin(stack,axis=0)
+    return np.nanargmin(stack,axis=0)
 
 def nearest_entry(data,values,columns=None):
     """From an array, find the entry that most closely
@@ -306,3 +308,17 @@ def confignames_of_size(sizes,proj=None):
     return subset
 
 
+def unique_rows(arr, thresh=0.0, metric='euclidean'):
+    """Returns subset of rows that are unique, in terms of Euclidean distance
+    http://stackoverflow.com/questions/16970982/find-unique-rows-in-numpy-array
+    """
+    distances = squareform(pdist(arr, metric=metric))
+    idxset = {tuple(np.nonzero(v)[0]) for v in distances <= thresh}
+
+    return arr[[x[0] for x in idxset]]
+
+
+def angle_between(p1, p2):
+    ang1 = np.arctan2(*p1[::-1])
+    ang2 = np.arctan2(*p2[::-1])
+    return np.rad2deg((ang1 - ang2) % (2 * np.pi))

@@ -6,5 +6,6 @@ import grandcanonical as gc
 import strain
 import plot
 import blocks
+import xtals
 from misc import *
 from thermoarray import *
