@@ -154,45 +154,46 @@ class Lattice(object):
         self._latmat=np.array([a,b,c]).T
         self._recipmat=reciprocal_lattice(self._latmat)
 
-    def _draw_voronoi_cell(self,vectormat):
+    def _draw_voronoi_cell(self,vectormat,ax):
         """Plot the Voronoi cell using the given lattice
 
         :vectormat: Either the real or reciprocal lattice
-        :returns: None
+        :ax: matplotlib subplot
+        :returns: ax
 
         """
         norms=np.linalg.norm(vectormat,axis=0)
         maxrange=np.amax(norms)
 
-        fig=plt.figure()
-        ax=fig.add_subplot(111,projection='3d')
-
         polygons=wigner_seitz_facets(vectormat)
-        ax.add_collection(Poly3DCollection(polygons,facecolors='w',linewidth=2,alpha=1))
+        ax.add_collection(Poly3DCollection(polygons,facecolors='w',linewidth=2,alpha=1,zorder=0))
         ax.add_collection(Line3DCollection(polygons,colors='k',linewidth=0.8, linestyles=':'))
 
         ax.set_xlim([-maxrange,maxrange])
         ax.set_ylim([-maxrange,maxrange])
         ax.set_zlim([-maxrange,maxrange])
-        plt.show()
 
-    def draw_wigner_seitz_cell(self):
+        return ax
+
+    def draw_wigner_seitz_cell(self,ax):
         """Plot the Wigner Seitz cell of the lattice
         (Voronoi of real lattice)
 
-        :returns: None
+        :ax: matplotlib subplot
+        :returns: ax
 
         """
-        self._draw_voronoi_cell(self._latmat)
+        return self._draw_voronoi_cell(self._latmat,ax)
 
-    def draw_brillouin_zone(self):
+    def draw_brillouin_zone(self,ax):
         """Plot the first Brillouin zone in reciprocal space
         (Voronoi of reciprocal lattice)
 
-        :returns: None
+        :ax: matplotlib subplot
+        :returns: ax
 
         """
-        self._draw_voronoi_cell(self._recipmat)
+        return self._draw_voronoi_cell(self._recipmat,ax)
 
 
 if __name__ == "__main__":
