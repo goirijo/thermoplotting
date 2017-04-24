@@ -7,6 +7,29 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import proj3d
 import numpy as np
 from scipy.spatial import Voronoi, ConvexHull
+import warnings
+
+def to_cartesian(vecmat,points):
+    """Given lattice vectors and points in fractional coordinates,
+    convert the points to Cartesian
+
+    :vecmat: np array (lattice vectors as columns)
+    :points: np array (vertically stacked coordinates)
+    :returns: np array
+
+    """
+    return np.dot(vecmat,points.T).T
+
+def to_fractional(vecmat,points):
+    """Given lattice vectors and points in Cartesian coordinates,
+    convert the points to fractional
+
+    :vecmat: np array (lattice vectors as columns)
+    :points: np array (vertically stacked coordinates)
+    :returns: np array
+
+    """
+    return np.dot(np.linalg.inv(vecmat),points.T).T
 
 def simplex_bin(hull):
     """Given a convex hull, check the equations of the
@@ -55,7 +78,6 @@ def signed_angle_3d(v0,v1,vn):
 
     return angle
 
-
 def polygonal_sort(points):
     """Given a set of points that define a polygon,
     sort them so
@@ -74,6 +96,29 @@ def polygonal_sort(points):
     sortinds=np.argsort(angles)
 
     return points[sortinds]
+
+def polygon_facet_center(points):
+    """Given a set of points that define a polygon,
+    find the center of the polygon
+
+    :points: np array
+    :returns: np array
+
+    """
+    center=np.average(points,axis=0)
+    return center
+
+def polygon_edge_centers(points):
+    """Given a set of points that define a polygon,
+    find the centers of the edges.
+
+    :points: np array
+    :returns: np array
+
+    """
+    rolled=np.roll(points,1,axis=0)
+    centers=(rolled+points)/2
+    return centers
 
 
 def reciprocal_lattice(latmat):
@@ -118,9 +163,12 @@ def wigner_seitz_points(latmat):
 
     #Only one full Voronoi cell should have been constructed
     goodregions=[x for x in vorregions if len(x) > 0 and x[0] is not -1]
-    assert(len(goodregions)==1)
 
-    return vorpoints[goodregions[0]]
+    if len(goodregions)!=1:
+        warnings.warn("Could not isolate a single Voronoi cell! Results may be wonky.")
+
+
+    return vorpoints[goodregions[-1]]
 
 def wigner_seitz_facets(latmat):
     """Returns a list of polygons corresponding to the Weigner Seitz cell
@@ -135,6 +183,78 @@ def wigner_seitz_facets(latmat):
     polygons=[polygonal_sort(ch.points[b]) for b in binned]
 
     return polygons
+
+
+def draw_voronoi_cell(vectormat,ax,alpha):
+    """Plot the Voronoi cell using the given lattice
+
+    :vectormat: Either the real or reciprocal lattice
+    :ax: matplotlib subplot
+    :returns: ax
+
+    """
+    norms=np.linalg.norm(vectormat,axis=0)
+    maxrange=np.amax(norms)
+
+    polygons=wigner_seitz_facets(vectormat)
+    ax.add_collection(Poly3DCollection(polygons,facecolors='w',linewidth=2,alpha=alpha,zorder=0))
+    ax.add_collection(Line3DCollection(polygons,colors='k',linewidth=0.8, linestyles=':'))
+
+    ax.set_xlim([-maxrange,maxrange])
+    ax.set_ylim([-maxrange,maxrange])
+    ax.set_zlim([-maxrange,maxrange])
+
+    return ax
+
+def voronoi_facet_centers(vectormat, fractional=True):
+    """Calculate the centers of facets of either the brillouin zone,
+    or Wigner Seitz cell, depending on the given vectormat
+
+    :vectormat: Either the real or reciprocal lattice
+    :fractional: bool
+    :returns: np array
+
+    """
+    polygons=wigner_seitz_facets(vectormat)
+    centers=np.stack([polygon_facet_center(p) for p in polygons])
+
+    if fractional:
+        centers=to_fractional(vectormat,centers)
+
+    return centers
+
+def voronoi_edge_centers(vectormat, fractional=True):
+    """Calculate the centers of the edges of either the brillouin zone,
+    or Wigner Seitz cell, depending on the given vectormat
+
+    :vectormat: Either the real or reciprocal lattice
+    :fractional: bool
+    :returns: np array
+
+    """
+    polygons=wigner_seitz_facets(vectormat)
+    for p in polygons:
+        print polygon_edge_centers(p)
+    centers=np.concatenate([polygon_edge_centers(p) for p in polygons],axis=0)
+
+
+    if fractional:
+        centers=to_fractional(vectormat,centers)
+
+    return np.vstack({tuple(row) for row in centers})
+
+def voronoi_vertexes(vectormat, fractional=True):
+    """Get the coordinates of the corners/vertexes of the brillouin zone
+
+    :vectormat: Either the real or reciprocal lattice
+    :fractional: bool
+    :returns: np array
+
+    """
+    polygons=wigner_seitz_facets(vectormat)
+    points=np.concatenate(polygons,axis=0)
+
+    return np.vstack({tuple(row) for row in points})
 
 
 class Lattice(object):
@@ -154,28 +274,47 @@ class Lattice(object):
         self._latmat=np.array([a,b,c]).T
         self._recipmat=reciprocal_lattice(self._latmat)
 
-    def _draw_voronoi_cell(self,vectormat,ax):
-        """Plot the Voronoi cell using the given lattice
+    def real_to_cartesian(self, points):
+        """Convert a list of fractional coordinates into Cartesian
+        for the real lattice
 
-        :vectormat: Either the real or reciprocal lattice
-        :ax: matplotlib subplot
-        :returns: ax
+        :points: np array (vertically stacked coordinates)
+        :returns: np array
 
         """
-        norms=np.linalg.norm(vectormat,axis=0)
-        maxrange=np.amax(norms)
+        return to_cartesian(self._latmat,points)
 
-        polygons=wigner_seitz_facets(vectormat)
-        ax.add_collection(Poly3DCollection(polygons,facecolors='w',linewidth=2,alpha=1,zorder=0))
-        ax.add_collection(Line3DCollection(polygons,colors='k',linewidth=0.8, linestyles=':'))
+    def real_to_fractional(self, points):
+        """Convert a list of Cartesian coordinates into fractional
+        for the real lattice
 
-        ax.set_xlim([-maxrange,maxrange])
-        ax.set_ylim([-maxrange,maxrange])
-        ax.set_zlim([-maxrange,maxrange])
+        :points: np array (vertically stacked coordinates)
+        :returns: np array
 
-        return ax
+        """
+        return to_fractional(self._latmat,points)
 
-    def draw_wigner_seitz_cell(self,ax):
+    def reciprocal_to_cartesian(self, points):
+        """Convert a list of fractional coordinates into Cartesian
+        for the reciprocal lattice
+
+        :points: np array (vertically stacked coordinates)
+        :returns: np array
+
+        """
+        return to_cartesian(self._recipmat,points)
+
+    def reciprocal_to_fractional(self, points):
+        """Convert a list of Cartesian coordinates into fractional
+        for the reciprocal lattice
+
+        :points: np array (vertically stacked coordinates)
+        :returns: np array
+
+        """
+        return to_fractional(self._recipmat,points)
+
+    def draw_wigner_seitz_cell(self,ax,alpha=1):
         """Plot the Wigner Seitz cell of the lattice
         (Voronoi of real lattice)
 
@@ -183,9 +322,9 @@ class Lattice(object):
         :returns: ax
 
         """
-        return self._draw_voronoi_cell(self._latmat,ax)
+        return self._draw_voronoi_cell(self._latmat,ax,alpha)
 
-    def draw_brillouin_zone(self,ax):
+    def draw_brillouin_zone(self,ax,alpha=1):
         """Plot the first Brillouin zone in reciprocal space
         (Voronoi of reciprocal lattice)
 
@@ -193,7 +332,92 @@ class Lattice(object):
         :returns: ax
 
         """
-        return self._draw_voronoi_cell(self._recipmat,ax)
+        return draw_voronoi_cell(self._recipmat,ax,alpha)
+
+    def brillouin_facet_centers(self,fractional=True):
+        """Calculate the center of all facets of the brillouin zone
+
+        :returns: np array
+        """
+        return voronoi_facet_centers(self._recipmat,fractional)
+
+    def brillouin_edge_centers(self,fractional=True):
+        """Calculate the center of all facets of the brillouin zone
+
+        :returns: np array
+        """
+        return voronoi_edge_centers(self._recipmat,fractional)
+
+    def brillouin_vertexes(self,fractional=True):
+        """Get the coordinates of the vertexes of the brillouin zone
+
+        :returns: np array
+        """
+        return voronoi_vertexes(self._recipmat,fractional)
+
+    def draw_real_vectors(self, ax):
+        """Draw the real lattice vectors
+
+        :ax: matplotlib subplot
+        :returns: ax
+
+        """
+        for v,color in zip(self._latmat.T,['r','g','b']):
+            arr=Arrow3D([0,v[0]],[0,v[1]],[0,v[2]],lw=3,arrowstyle="-|>",mutation_scale=20,color=color,linestyle="-")
+            ax.add_artist(arr)
+
+        return ax
+
+    def draw_reciprocal_vectors(self, ax):
+        """Draw the reciprocal lattice vectors
+
+        :ax: matplotlib subplot
+        :returns: ax
+
+        """
+        for v,color in zip(self._recipmat.T,['r','g','b']):
+            arr=Arrow3D([0,v[0]],[0,v[1]],[0,v[2]],lw=3,arrowstyle="-|>",mutation_scale=20,color=color,linestyle="--")
+            ax.add_artist(arr)
+
+        return ax
+
+    def angles(self, rad=True, reciprocal=False):
+        """Return the value of alpha, beta and gamma, i.e. the angles
+        between the lattice vectors.
+        :returns: (float,float,float)
+
+        """
+        if not reciprocal:
+            a,b,c=self._latmat.T
+        else:
+            a,b,c=self._recipmat.T
+
+        alpha=angle_between(b,c)
+        beta=angle_between(c,a)
+        gamma=angle_between(a,b)
+
+        if not rad:
+            alpha=alpha*180/np.pi
+            beta=beta*180/np.pi
+            gamma=gamma*180/np.pi
+
+        return alpha,beta,gamma
+
+    def lengths(self,reciprocal=False):
+        """Return the length of each lattice vector
+        :returns: TODO
+
+        """
+        if not reciprocal:
+            a,b,c=self._latmat.T
+        else:
+            a,b,c=self._recipmat.T
+
+        al=np.linalg.norm(a)
+        bl=np.linalg.norm(b)
+        cl=np.linalg.norm(c)
+
+        return al,bl,cl
 
 
 if __name__ == "__main__":

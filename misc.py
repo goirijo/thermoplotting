@@ -4,6 +4,19 @@ import casm.project
 import os
 import hashlib
 from scipy.spatial.distance import squareform, pdist
+from matplotlib.patches import FancyArrowPatch
+from mpl_toolkits.mplot3d import proj3d
+
+class Arrow3D(FancyArrowPatch):
+    def __init__(self, xs, ys, zs, *args, **kwargs):
+        FancyArrowPatch.__init__(self, (0,0), (0,0), *args, **kwargs)
+        self._verts3d = xs, ys, zs
+
+    def draw(self, renderer):
+        xs3d, ys3d, zs3d = self._verts3d
+        xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, renderer.M)
+        self.set_positions((xs[0],ys[0]),(xs[1],ys[1]))
+        FancyArrowPatch.draw(self, renderer)
 
 def latmat(poscar):
     """Extract the lattice from a POSCAR file
@@ -276,7 +289,7 @@ def calculated_confignames(invert=False,proj=None):
     """Get list of all the confignames that have is_calculated==1
     
     :invert: bool
-    :returns" list of str
+    :returns: list of str
     """
     if proj==None:
         proj=casm.project.Project()
@@ -317,8 +330,20 @@ def unique_rows(arr, thresh=0.0, metric='euclidean'):
 
     return arr[[x[0] for x in idxset]]
 
+def unit_vector(v):
+    """Normalize a vector so that it has unit length.
 
-def angle_between(p1, p2):
-    ang1 = np.arctan2(*p1[::-1])
-    ang2 = np.arctan2(*p2[::-1])
-    return np.rad2deg((ang1 - ang2) % (2 * np.pi))
+    :v: np array
+    :returns: np array
+
+    """
+    return v/np.linalg.norm(v)
+
+def angle_between(v1, v2):
+    """Compute the angle between two vectors. Not smart for signed angles.
+
+    :returns: float
+    """
+    v1_u = unit_vector(v1)
+    v2_u = unit_vector(v2)
+    return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))

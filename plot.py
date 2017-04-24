@@ -22,3 +22,23 @@ def texmrm(string):
     """
     return r"$\mathrm{"+string+"}$"
 
+def plot_label_for_cluster_size(clustersize):
+    """Return string for the legend of clusters of the
+    given size
+
+    :clustersize: int
+    :returns: str
+
+    """
+    if clustersize==0:
+        return texbf("Empty")
+
+    elif clustersize==1:
+        return texbf("Point")
+
+    elif clustersize==2:
+        return texbf("Pairs")
+
+    else:
+        return texbf(str(clustersize)+" body")
+    
