@@ -175,26 +175,35 @@ def pruned_hull_facets(data_list):
     :returns: array of facets (collection of 3 points)
 
     """
-    facet_list = hull_facets(data_list)
+    new_tri = spa.ConvexHull(data_list) #pylint: disable=no-member
+    good_simplex=[]
 
-    statenormal = endstates_normal(data_list)
-    refendstate = endstate(data_list, 0)
-    facet_list = sliced_facets(facet_list, statenormal, refendstate)
+    for eq,sx in zip(new_tri.equations,new_tri.simplices):
+        if eq[2]<0:
+            good_simplex.append(sx)
+    good_simplex=np.vstack(good_simplex)
+    return new_tri.points[good_simplex]
+
+    # facet_list = hull_facets(data_list)
+
+    # statenormal = endstates_normal(data_list)
+    # refendstate = endstate(data_list, 0)
+    # facet_list = sliced_facets(facet_list, statenormal, refendstate)
 
 
-    norm = np.array([0, 1, 0])
-    facet_list = pruned_facets(facet_list, norm)
+    # norm = np.array([0, 1, 0])
+    # facet_list = pruned_facets(facet_list, norm)
 
-    norm = np.array([1, 1, 0])
-    facet_list = pruned_facets(facet_list, norm)
+    # norm = np.array([1, 1, 0])
+    # facet_list = pruned_facets(facet_list, norm)
 
-    norm = np.array([1, 0, 0])
-    facet_list = pruned_facets(facet_list, norm)
+    # norm = np.array([1, 0, 0])
+    # facet_list = pruned_facets(facet_list, norm)
 
-    #norm=endstates_normal(data_list)
-    #facet_list=pruned_facets(facet_list, norm);
+    # #norm=endstates_normal(data_list)
+    # #facet_list=pruned_facets(facet_list, norm);
 
-    return facet_list
+    # return facet_list
 
 def equil_trans(data_list):
     """Recursively goes through all the data points and applies shear matrix

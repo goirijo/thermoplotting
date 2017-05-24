@@ -3,6 +3,7 @@ import pandas as pd
 import casm.project
 import os
 import hashlib
+import json
 from scipy.spatial.distance import squareform, pdist
 from matplotlib.patches import FancyArrowPatch
 from mpl_toolkits.mplot3d import proj3d
@@ -230,7 +231,8 @@ def casm_query(configlist,queryargs,proj=None):
 
     if not requestednames:
         queryargs.append("configname")
-
+    
+    testselection=simulated_selection(proj,configlist)
     subquery=casm.project.query(proj,queryargs,selection=simulated_selection(proj,configlist))
 
     if not requestednames:
@@ -347,3 +349,14 @@ def angle_between(v1, v2):
     v1_u = unit_vector(v1)
     v2_u = unit_vector(v2)
     return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+
+def json_from_file(filename):
+    """Load the given path to file and return json object
+
+    :filename: path
+    :returns: json
+
+    """
+    with open(filename) as data_file:
+        data=json.load(data_file)
+    return data
