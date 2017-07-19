@@ -127,6 +127,19 @@ class ECI(object):
 
         return ax
 
+    def eci_vector(self):
+        """Return the active eci as a Series
+        :returns: pd Series
+
+        """
+        inds=[]
+        vals=[]
+        for cf in self._jsoneci["cluster_functions"]:
+            if "eci" in cf:
+                inds.append(cf["linear_function_index"])
+                vals.append(cf["eci"])
+        return pd.Series(data=vals,index=inds)
+
 
 def main():
     eci_data=query_eci("./eci.json")

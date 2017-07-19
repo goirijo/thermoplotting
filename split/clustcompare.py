@@ -271,6 +271,33 @@ class Detector(object):
 
         #This should properly take care of the index-eci relationship
         return pd.DataFrame({"eci":zeros})
+
+    def basis(self):
+        """Return copy of the basis json used at construction
+        :returns: json
+
+        """
+        return self._basis.copy()
+
+    def traced_eci_basis(self, ecivals):
+        """Go through the given eci values and add entries into the basis json object.
+        The eci values must have an index associated with each value, which corresponds
+        to the linear function index. Any preexisting eci values will be removed.
+
+        :ecivals: pd Series
+        :returns: json
+
+        """
+        traced_basis=self.basis()
+
+        for cf in traced_basis["cluster_functions"]:
+            if "eci" in cf:
+                cf.pop("eci")
+            if cf["linear_function_index"] in ecivals.index:
+                cf["eci"]=ecivals.loc[cf["linear_function_index"]]
+
+        return traced_basis
+
         
 
 
@@ -462,6 +489,34 @@ class Subtracter(object):
 
         return
 
+    def sub_eci_trace(self, subeci):
+        """Given a vector of eci corresponding to the current subtracted view
+        of self, insert the eci values into the global eci vector.
+
+        For example, after subtracting out binary basis functions, the resulting
+        correlations and subtracted energies are used to determine a some eci. This
+        eci vector will be shorter than the global one, but can be traced back in
+        with this routine.
+
+        :subeci: np array
+        :returns: pandas DataFrame
+
+        """
+        full_cols=self._corr.columns.values
+        non_dropped=[c for c in full_cols if c not in self._dropped_corr]
+        non_dropped=np.array([c[5:-1] for c in non_dropped],dtype=int)
+
+        self._eci.loc[non_dropped,"eci"]+=subeci
+
+        return self.eci()
+
+    def eci(self):
+        """Return copy of all ECI values that have been traced onto self
+        :returns: pd DataFrame
+
+        """
+        return self._eci.copy()
+
     def sub_correlation_matrix(self):
         """Return a copy of the correlation matrix after having dropped whatever columns.
         :returns: pd DataFrame
@@ -489,3 +544,12 @@ class Subtracter(object):
 
         datacombo=pd.concat((extra_data,corrdata),axis=1)
         return datacombo.copy()
+
+    def as_json_fit(self):
+        """Trace all the stored eci values onto the basis json object and return it so that
+        it can be used as a casm fit
+        :returns: json
+
+        """
+        non_zero_eci=self._eci.loc[self._eci["eci"]!=0]
+        return self._detector.traced_eci_basis(non_zero_eci["eci"])

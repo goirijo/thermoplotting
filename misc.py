@@ -360,3 +360,37 @@ def json_from_file(filename):
     with open(filename) as data_file:
         data=json.load(data_file)
     return data
+
+def json_to_file(data,filename):
+    """Save the json data to a file
+
+    :data: json
+    :filename: path
+    :returns: void
+
+    """
+    with open(filename, 'w') as f:
+        json.dump(data,f,indent=4,sort_keys=True)
+
+    return
+
+
+def generate_condition(a,b,temperature,tolerance=0.001):
+    """Create a json object that contains the information for one
+    of the custom conditions, so that you can stick it into a list
+
+    :a: float
+    :b: float
+    :temperature: float
+    :tolerance: float
+    :returns: json
+    """
+    settings=dict()
+    settings["param_chem_pot"]=dict()
+    settings["param_chem_pot"]["a"]=a
+    settings["param_chem_pot"]["b"]=b
+    settings["temperature"]=temperature
+    settings["tolerance"]=tolerance
+
+    return settings
+
