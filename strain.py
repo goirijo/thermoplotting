@@ -13,8 +13,6 @@ def _F(startmat,endmat):
 
     """
     F=np.dot(endmat,np.linalg.inv(startmat))
-    print "F"
-    print F
     return F
 
 def _C(startmat,endmat):
@@ -81,6 +79,7 @@ def parameters(mat):
     :returns: float,float,float,float,float,float
 
     """
+
     xx,yy,zz,yz,xz,xy=_matsplit(mat)
 
     e1=_e1(xx,yy,zz)

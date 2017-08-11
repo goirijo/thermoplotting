@@ -4,6 +4,7 @@ import casm.project
 import os
 import hashlib
 import json
+import re
 from scipy.spatial.distance import squareform, pdist
 from matplotlib.patches import FancyArrowPatch
 from mpl_toolkits.mplot3d import proj3d
@@ -287,6 +288,21 @@ def all_confignames(proj=None):
 
     return configdump["configname"]
 
+def selected_confignames(proj=None):
+    """Ger list of the confignames that are currently selected
+    (i.e. "MASTER")
+
+    :proj: casm.project.Project
+    :returns: pd list of str
+
+    """
+    if proj==None:
+        proj=casm.project.Project()
+
+    master=casm.project.Selection(proj,"MASTER",False)
+    return casm.project.query(proj,["configname"],master)["configname"]
+    
+
 def calculated_confignames(invert=False,proj=None):
     """Get list of all the confignames that have is_calculated==1
     
@@ -393,4 +409,44 @@ def generate_condition(a,b,temperature,tolerance=0.001):
     settings["tolerance"]=tolerance
 
     return settings
+
+def set_np_print_format():
+    """Make numpy print 8 siginificant figures
+
+    :returns: np module
+
+    """
+    np.set_printoptions(precision=8,suppress=True,formatter={'float': '{: 0.8f}'.format})
+    return np
+
+def natural_sort_key(l):
+    """Sort list numerically by the integers in the string, so that
+    values like corr(0), corr(1), corr(2), etc come out in the
+    right order.
+
+    Use this function as they key when sorting, e.g.:
+    mylist.sort(key=natural_sort_key)
+
+    :l: list of str
+    :returns: list of str
+
+    """
+    _nsre = re.compile('([0-9]+)')
+    return [int(text) if text.isdigit() else text.lower() for text in re.split(_nsre, l)]   
+
+def sequential_columns(df, colname):
+    """Extract and sort the columns from a pandas dataframe
+    containing a sequence of columns, such as
+    corr(0), corr(1), corr(2)... etc
+
+    :df: pd DataFrame
+    :colname: str
+    :returns: list of str
+
+    """
+    allcols=df.columns.values
+    cols=[c for c in allcols if re.compile(colname+"\([0-9]+\)").search(c)]
+
+    return sorted(cols,key=natural_sort_key)
+    
 
