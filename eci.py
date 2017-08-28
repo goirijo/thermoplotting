@@ -48,7 +48,7 @@ def json_eci_to_pandas(jsoneci):
 
     return eci_df
 
-def squash_eci(pdeci, max_value=0.0):
+def squashed_eci(pdeci, max_value=0.0):
     """Run through the values of the eci and return
     a view with eci values that are of greater magnitude
     that the provided maximum value
@@ -59,6 +59,25 @@ def squash_eci(pdeci, max_value=0.0):
 
     """
     return pdeci.loc[pdeci["eci"].abs()>max_value]
+
+def trace_eci(basis, ix_to_eci):
+    """Run through a basis.json or eci.json object and trace over eci values.
+
+    :basis: json
+    :ix_to_eci: dict {basis_function_index:eci_value}
+    :returns: json
+
+    """
+    for cf in basis["cluster_functions"]:
+        lfix=cf["linear_function_index"]
+        if lfix in ix_to_eci.keys():
+            cf["eci"]=ix_to_eci[lfix]
+        elif "eci" in cf:
+            del cf["eci"]
+        else:
+            continue
+
+    return basis
 
 
 class ECI(object):
@@ -83,7 +102,7 @@ class ECI(object):
         self._jsoneci=data
 
         #Store as pandas, but discard eci with values of 0.0
-        self._pdeci=squash_eci(json_eci_to_pandas(self._jsoneci))
+        self._pdeci=squashed_eci(json_eci_to_pandas(self._jsoneci))
         self._pdeci=self._pdeci.reset_index()
 
     def cluster_size(self, numsites):

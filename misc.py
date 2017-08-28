@@ -449,4 +449,68 @@ def sequential_columns(df, colname):
 
     return sorted(cols,key=natural_sort_key)
     
+def sequential_dataframe(array, colname):
+    """Construct a pandas DataFrame from a numpy array
+    with a sequential naming of columns, such as
+    corr(0), corr(1), corr(2)... etc
+
+    :array: np
+    :colname: str
+    :returns: pd DataFrame
+
+    """
+    df=pd.DataFrame({"{}({})".format(colname,ix):col for ix,col in enumerate(array.T)})
+    return df[sequential_columns(df, colname)]
+
+def dataframe_from_numpy(npdata, colnames):
+    """Create a pandas DataFrame from a set of numpy data that
+    has the specified column names. Only for 2D data at the
+    moment.
+
+    :npdata: np array
+    :colnames: list of str
+    :returns: pd DataFrame
+
+    """
+    if len(colnames)!=len(npdata.T):
+        raise ValueError("Number of columns does not match the number of column names!")
+
+    return pd.DataFrame({name:col for name,col in zip(colnames,npdata.T)})
+
+def configmatch(match_to_data, match_from_row, match_values, eps=0.0000001):
+    """Find a particular configuration in a list of configurations by checking particular
+    values, such as composition, formation energy, etc. Returns the index in the configuration
+    list or None
+
+    :match_to_data: pd DataFrame, must have match_values as columns
+    :match_from_row: row from pd DataFrame, must have match_values as columns
+    :match_values: columns that should be compared to determine if the configuration matches
+    :eps: tolerance value
+    :returns: list of int
+
+    """
+    tmp_col="_____________________________tmp"
+
+    #If your data frame has a columns with such a ridiculous name, I can't deal with it right now...
+    if tmp_col in match_to_data.columns.values:
+        raise ValueError("Why in the world do you have a column named {}???".format(tmp_col))
+
+    match_to_data[tmp_col]=0.0
+    diffsum=match_to_data[tmp_col]
+
+    for m in match_values:
+        diffsum+=abs(match_to_data[m]-match_from_row[m])
+
+    ixmatch=diffsum.loc[diffsum<eps].index
+
+    # if len(ixmatch)!=1:
+    #     print ixmatch
+    #     print '----------------------'
+    #     print match_from_row
+    #     print '----------------------'
+    #     print match_to_data.sort_values(tmp_col)
+    #     exit()
+
+    del match_to_data[tmp_col]
+    return ixmatch
 

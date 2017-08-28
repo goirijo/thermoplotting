@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import thermoplotting as tp
 import numpy as np
 
@@ -19,7 +20,14 @@ def main():
     c=np.array([3,5,0])
 
     lat=tp.xtals.Lattice(a,b,c)
-    lat.draw_brillouin_zone()
+
+    
+    fig=plt.figure()
+    ax=fig.add_subplot(111,projection='3d')
+
+    lat.draw_brillouin_zone(ax)
+
+    plt.show()
 
 
 

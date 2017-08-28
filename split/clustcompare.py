@@ -194,14 +194,14 @@ class Detector(object):
                 if self._formula_has_exclusively(cf["prototype_function"],species)]
         return indexes
 
-    def detect_clusters(self, detector,expact_all=True):
+    def detect_clusters(self, detector,expect_all=True):
         """Map the indexes of shared clusters from the given detector to 
         self. As a default, the expectation is that every
         single cluster of the given detector should map
         somewhere on self.
 
         :detector: Detector
-        :expact_all: bool
+        :expect_all: bool
         :returns: list of (int,int)
 
         """
@@ -212,7 +212,7 @@ class Detector(object):
                 if compare_cluster(subfunc,func):
                     found=True
                     ix_map.append((subfunc["linear_function_index"],func["linear_function_index"]))
-            if found==False and expact_all:
+            if found==False and expect_all:
                 raise ValueError("Could not map cluster "+str(subfunc["linear_function_index"])+" onto this basis!")
         return ix_map
 
@@ -232,6 +232,26 @@ class Detector(object):
 
         """
         return list(species_from_basis(self._basis))
+
+    def index_map(self,detector,expect_all=True):
+        return self.detect_clusters(detector,expect_all)
+
+    def active_indexes(self,eps=0.0005):
+        """Return list of indexes corresponding to non-zero ECI values
+        :returns: list of int
+
+        """
+        active_ix=[]
+        for cf in self._basis["cluster_functions"]:
+            try:
+                eci=cf["eci"]
+            except:
+                continue
+
+            if abs(eci)>eps:
+                active_ix.append(cf["linear_function_index"])
+
+        return active_ix
 
     def detect_indexes(self, detector, expect_all=True):
         """First detect where the clusters of the given detector lie in self,
@@ -255,6 +275,38 @@ class Detector(object):
         #Get intersection between the clusters and the basis functions with the appropriate species
         indexes=[p for p in clust_map if p[1] in subspecies_indexes]
         return indexes
+
+    def detect_active_indexes(self, detector, expect_all=True, eps=0.0005):
+        """Map the indexes from the given detector onto self, but return
+        only the ones that have an active ECI
+
+        :detector: Detector
+        :expect_all: bool
+        :returns: list of (int,int)
+        :eps: float tolerance
+
+        """
+        all_indexes=self.detect_indexes(detector,expect_all)
+        subactive=detector.active_indexes(eps)
+        active_indexes=[p for p in all_indexes if p[0] in subactive]
+
+        return active_indexes
+
+    def detect_inactive_indexes(self, detector, expect_all=True, eps=0.0005):
+        """Map the indexes from the given detector onto self, but return
+        only the ones that DO NOT have an active ECI
+
+        :detector: Detector
+        :expect_all: bool
+        :returns: list of (int,int)
+        :eps: float tolerance
+
+        """
+        all_indexes=self.detect_indexes(detector,expect_all)
+        subactive=detector.active_indexes(eps)
+        inactive_indexes=[p for p in all_indexes if p[0] not in subactive]
+
+        return inactive_indexes
 
     def vectorized_eci(self):
         """Extract the eci values from the json format into a vector of mostly zeros with
@@ -468,7 +520,7 @@ class Subtracter(object):
         return
 
 
-    def subtract(self, detector):
+    def subtract(self, detector, drop_correlations=True):
         """Map basis functions of the given detector onto self and subtract the active
         eci values out, effectively eliminating a subspace from the fit you need to make.
 
@@ -482,10 +534,11 @@ class Subtracter(object):
         #Subtract energy contribution of active ECI
         self._datadump["subtracted_energy"]=self._datadump["formation_energy"]-self._expanded_energy()
 
-        #Eliminate basis functions that have active ECI
-        indexes=self._detector.detect_indexes(detector)
-        to_ix=np.array(indexes)[:,1]
-        self._drop_correlations(to_ix)
+        if drop_correlations==True:
+            #Eliminate basis functions from detector that have active ECI
+            indexes=self._detector.detect_indexes(detector)
+            to_ix=np.array(indexes)[:,1]
+            self._drop_correlations(to_ix)
 
         return
 
