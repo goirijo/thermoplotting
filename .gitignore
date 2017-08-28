@@ -1,2 +1,5 @@
 *.pyc
 .stfolder
+thermoplotting.egg-info
+build
+dist

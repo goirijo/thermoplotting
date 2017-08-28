@@ -1,8 +1,8 @@
 thermoplotting is my solution to the constant need for plotting thermodynamic
-data in graduate school. It's meant primarily to interface with casm, but relies
-on .thdat files for input, which are expected to have a certain structure.
+data in graduate school. It's meant primarily to interface with casm, but contains
+a few modules that could be used with raw data, such as plotting ECI values or
+energy-composition plots with convex hulls.
 
-Expected format of .thin files:
-
-Ternary module:
-Three columns of values: composition0 composition1 and energy
+In addition to plotting data, new features are added as I need them, such as manipulating
+basis functions, plotting primitive cells in reciprocal space, or integrating Monte Carlo
+data to get Grand Canonical free energies.
