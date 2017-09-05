@@ -110,6 +110,23 @@ def formula_has_multi_any_bfunc(formula, bfunc_set):
 
     return instances>1
     
+def _non_sequential_raise(basis):
+    """Ensure that the linear function index of the cluster functions
+    is sane. That is, all indexes are simply 0, 1, 2... n
+
+    :basis: json
+    :returns: void or raises
+
+    """
+    expected_ix=range(len(basis["cluster_functions"]))
+    given_ix=[cf["linear_function_index"] for cf in basis["cluster_functions"]]
+
+    try:
+        assert(not np.any(np.array(expected_ix)-np.array(given_ix)))
+    except:
+        raise ValueError("The provided indexes of the detector are not sequential! If you are sure you're not missing"
+                "basis functions, reindex the basis functions and try again.")
+    return
 
 
 class Detector(object):
@@ -124,6 +141,7 @@ class Detector(object):
         :basis: json
 
         """
+        _non_sequential_raise(basis)
 
         self._basis = basis
         self._species_to_basis=species_to_basis_dict(self._basis)
@@ -317,9 +335,17 @@ class Detector(object):
         """
         zeros=np.zeros(len(self._basis["cluster_functions"]))
 
-        if "fit" in self._basis:
-            for ix,eci in self._basis["fit"]["eci"]:
-                zeros[ix]=eci
+        for cf in self._basis["cluster_functions"]:
+            if "eci" in cf:
+                ix=cf["linear_function_index"]
+                val=cf["eci"]
+                zeros[ix]=val
+
+
+        # if "fit" in self._basis:
+        #     print "NAILED IT"
+        #     for ix,eci in self._basis["fit"]["eci"]:
+        #         zeros[ix]=eci
 
         #This should properly take care of the index-eci relationship
         return pd.DataFrame({"eci":zeros})
@@ -465,7 +491,13 @@ class Subtracter(object):
         to_ix=np.array(indexes)[:,1]
 
         #Ensure that the from indexes are simply values of 0,1,2,3,4...n
-        assert(not np.any(from_ix-range(len(from_ix))))
+        #This part is now redundant due to check at detector construction,
+        #but I'll leave it just in case
+        try:
+            assert(not np.any(from_ix-range(len(from_ix))))
+        except:
+            raise ValueError("The provided indexes of the detector are not sequential! If you are sure you're not missing\
+                    basis functions, reindex the basis functions and try again.")
 
         sub_eci.index=to_ix
         return sub_eci
@@ -542,6 +574,61 @@ class Subtracter(object):
 
         return
 
+    def merged_eci(self, hallcandidate):
+        """Given a candidate from the hall of fame, add the eci to the current values.
+        Return a Detector object with the updated eci values, which can be used as a final
+        eci.json file.
+
+        The idea behind this routine is that an instance of a Subtracter has been created,
+        had values subtracted, then the difference has been fit. The eci of the fit need to be
+        combined back with the initial eci that were subtracted.
+
+        :hallcandidate: Deap object, one of the fits from your hall of fame
+        :returns: json
+
+        """
+        eci_dict={ix:e for ix,e in hallcandidate.eci}
+
+        merged_eci=self._detector.basis()
+        for cf in merged_eci["cluster_functions"]:
+            lfix=cf["linear_function_index"]
+            eci_val=self._eci.loc[lfix]["eci"]
+
+            if lfix in eci_dict:
+                eci_val+=eci_dict[lfix]
+
+            if eci_val!=0:
+                cf["eci"]=eci_val
+
+        return merged_eci
+
+    def _non_dropped_ix(self):
+        """Return the indexes corresponding to correlations that have not been dropped during the
+        subtraction
+
+        :returns: np array
+        """
+        full_cols=self._corr.columns.values
+        non_dropped=[c for c in full_cols if c not in self._dropped_corr]
+        #extract the integer n out of corr(n)
+        non_dropped=np.array([c[5:-1] for c in non_dropped],dtype=int)
+
+        return non_dropped
+
+    def sub_halloffame_trace(self, candidate):
+        """Given a halloffame candidate from the subtracted fit, trace the eci values back onto
+        self, adding the eci back onto the existing ones.
+
+        :candidate: Deap object, one of the fits from your hall of fame
+        :returns: pd DataFrame
+
+        """
+        eci_dict=[(ix,e) for ix,e in candidate.eci]
+        ix,ecivals=zip(*eci_dict)
+
+        subeci=pd.Series(ecivals,ix)
+        return self.sub_eci_trace(subeci)
+
     def sub_eci_trace(self, subeci):
         """Given a vector of eci corresponding to the current subtracted view
         of self, insert the eci values into the global eci vector.
@@ -551,15 +638,20 @@ class Subtracter(object):
         eci vector will be shorter than the global one, but can be traced back in
         with this routine.
 
-        :subeci: np array
+        eci values are *added* back in, not replaced.
+
+        :subeci: pd Series
         :returns: pandas DataFrame
 
         """
-        full_cols=self._corr.columns.values
-        non_dropped=[c for c in full_cols if c not in self._dropped_corr]
-        non_dropped=np.array([c[5:-1] for c in non_dropped],dtype=int)
+        non_dropped=self._non_dropped_ix()
 
-        self._eci.loc[non_dropped,"eci"]+=subeci
+        non_dropped_eci=self._eci.loc[non_dropped]
+        non_dropped_eci.reset_index(inplace=True)
+        non_dropped_eci.loc[subeci.index,"eci"]+=subeci
+        non_dropped_eci.set_index("index",inplace=True)
+
+        self._eci.loc[non_dropped_eci.index,"eci"]=non_dropped_eci["eci"]
 
         return self.eci()
 

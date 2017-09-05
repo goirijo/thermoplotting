@@ -14,3 +14,4 @@ from energy import Energy3
 from selection import Selection
 import systems
 import split
+import casmfiles
