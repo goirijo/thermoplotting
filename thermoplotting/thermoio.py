@@ -2,6 +2,8 @@ import glob
 import numpy as np
 import json
 
+#This file may be completely obsolete at this point
+
 def collect(directory='./'):
     """Collect all the data in *.thdat files and return values as np array
     :returns: array of double np array
