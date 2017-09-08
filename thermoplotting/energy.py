@@ -28,6 +28,26 @@ class Energy3(object):
 
         self._running_data=pd.DataFrame(columns=[self._xlabel,self._ylabel,self._zlabel])
 
+    def add_data(self, x, y, z):
+        """Apply shear transformation to data to create equilateral triangle and
+        save it so that a hull can be constructed later.
+
+        :x: list of composition
+        :y: list of composition
+        :z: list of energy
+        :returns: sheared data (np array)
+
+        """
+        #Shear composition
+        digestable=np.array((x,y,z)).T
+        digested=thermoplotting.ternary.equil_trans(digestable)
+
+        #Save the data
+        concatable=pd.DataFrame({self._xlabel:digested[:,0],self._ylabel:digested[:,1],self._zlabel:digested[:,2]})
+        self._running_data=pd.concat((self._running_data,concatable))
+
+        return digested
+
     def scatter(self, ax, x, y, z, *args, **kwargs):
         """Scatter the energy data onto the given matplotlib object,
         applying a shear transformation to it so that it lies on an
@@ -43,13 +63,7 @@ class Energy3(object):
         :returns: matplotlib axis
 
         """
-        #Shear composition
-        digestable=np.array((x,y,z)).T
-        digested=thermoplotting.ternary.equil_trans(digestable)
-
-        #Save the data
-        concatable=pd.DataFrame({self._xlabel:digested[:,0],self._ylabel:digested[:,1],self._zlabel:digested[:,2]})
-        self._running_data=pd.concat((self._running_data,concatable))
+        digestable=self.add_data(x,y,z)
 
         #Scatter things
         ax.scatter(digested[:,0],digested[:,1],digested[:,2],*args,**kwargs)
