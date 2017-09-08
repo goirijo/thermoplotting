@@ -166,7 +166,7 @@ def energy(data_list):
     """
     return data_list[:, -1]
 
-def pruned_hull_facets(data_list):
+def pruned_hull_facets(data_list,tol=0.00001):
     """Calls facets() to get all facets of the convex hull, but then
     removes all facets on binary subspace, as well as any resulting
     facets above the reference endpoints.
@@ -179,7 +179,7 @@ def pruned_hull_facets(data_list):
     good_simplex=[]
 
     for eq,sx in zip(new_tri.equations,new_tri.simplices):
-        if eq[2]<0:
+        if eq[2]<0-tol:
             good_simplex.append(sx)
     good_simplex=np.vstack(good_simplex)
     return new_tri.points[good_simplex]

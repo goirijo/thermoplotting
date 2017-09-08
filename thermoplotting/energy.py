@@ -63,7 +63,7 @@ class Energy3(object):
         :returns: matplotlib axis
 
         """
-        digestable=self.add_data(x,y,z)
+        digested=self.add_data(x,y,z)
 
         #Scatter things
         ax.scatter(digested[:,0],digested[:,1],digested[:,2],*args,**kwargs)
