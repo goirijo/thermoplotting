@@ -94,17 +94,12 @@ def header_split(filename,headerdict):
     :returns: [string],ndarray
 
     """
-    try:
-        if filename[-4::]==".txt" or filename[-4::]==".csv":
-            return truncate(txt_split(filename),headerdict)
-        elif filename[-5::]==".json":
-                return truncate(json_split(filename),headerdict)
-        else:
-            raise RuntimeError("File name "+filename+" was neither json or txt")
-
-    except:
-        raise ValueError("Something went horribly wrong with your input file "+filename+". Check for non equilibrated conditions.")
-
+    if filename[-4::]==".txt" or filename[-4::]==".csv":
+        return truncate(txt_split(filename),headerdict)
+    elif filename[-5::]==".json":
+            return truncate(json_split(filename),headerdict)
+    else:
+        raise RuntimeError("File name "+filename+" was neither json or txt")
 
 
 def safe_clobber(readfilelist,headerdict={}):

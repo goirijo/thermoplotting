@@ -11,7 +11,10 @@ def pandas_from_casm_csv(filename):
     """
     dump=pd.read_csv(filename, delim_whitespace=True)
 
-    returnable=dump[dump.columns[:-1]]
-    returnable.columns=dump.columns[1:]
+    if "#" in dump:
+        returnable=dump[dump.columns[:-1]]
+        returnable.columns=dump.columns[1:]
+    else:
+        returnable=dump
 
     return returnable

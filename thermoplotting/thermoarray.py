@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import thermoio
 import copy
 from misc import *
@@ -16,59 +17,61 @@ class ThermoArray(object):
     want to shorten them to something else when referencing them.
 
     """
+    def _raise_bad_input_data(self, datalist):
+        """Ensure that the given data makes sense. Controlled variables must be
+        regularly gridded
 
-    def __init__(self, readfilelist, controlled_var, headerdict={}, decimals=0.000000001):
-        """Read a bunch of files, stack them together, and reshape
-        it all into an N-dimensional array with axis T, mu0, mu1...
-
-        :readfilelist: List of files to read
-        :controlled_var: List of strings, specify controlled parameters of data
-        :headerdict: Translate the file headers to the internal standard, drop all other fields
-        :decimals: Specify the floating point tolerance. Values will be rounded. Default is 1E-8
+        :datalist: input set of data at construction
+        :returns: void or raises
 
         """
+        return
 
-        self._readfilelist = readfilelist
-        #self._headerdict=headerdict
+    def _prepare_data(self, datalist, headerdict, decimals):
+        """Put all the data sets together and rename the columns
+        to match the headerdict
 
-        self._headerwords,dataclob=thermoio.safe_clobber(readfilelist,headerdict)
+        :datalist: list of pd DataFrame
+        :headerdict: dict
+        :decimals: int
+        :returns: pandas DataFrame
 
-        try:
-            self._headerwords,dataclob=thermoio.safe_clobber(readfilelist,headerdict)
-        except:
-            print "Bad input data! All input must be in the same order."
-            print self._headerwords
-            print headerdict
-            raise
+        """
+        #At this point the data is assumed to be good, all columns match, etc
+        combined_data=pd.concat(datalist,ignore_index=True)
+        new_col_names=[headerdict[c] if c in headerdict else c for c in combined_data.columns]
+        combined_data.columns=new_col_names
 
-        #self._headerwords=thermoio.header_split(readfilelist[0])
-        #self._standardheaderwords=[headerdict[field] if field in headerdict else field for field in self._headerwords]
+        #rounding does not remove -0.0, thought it shouldn't matter
+        return combined_data.round(decimals)
 
+    def __init__(self, datalist, controlled_var, headerdict={}, decimals=8):
+        """Stack DataFrames together that all have the same controlled variables
+        it all into an N-dimensional array with axis T, mu0, mu1...
+
+        :datalist: List of data to read (presumably from all the results.json)
+        :controlled_var: List of strings, specify controlled parameters of data
+        :headerdict: Translate the file headers to the internal standard, drop all other fields
+        :decimals: int Specify the floating point tolerance. Values will be rounded. Default is 1E-8 (value 8)
+
+        """
+        self._raise_bad_input_data(datalist)
+
+        # self._readfilelist = readfilelist
+        self._headerdict=headerdict
+
+        unrolled_data=self._prepare_data(datalist,headerdict,decimals)
 
         #store dependent and independent variables in separate lists
-        self._controlled_var=[]
-        controlled_data_list=[]
-        self._dependent_var=[]
-        dependent_data_list=[]
-        for index, var in enumerate(self._headerwords):
-            if(var in controlled_var):
-                self._controlled_var.append(var)
-                controlled_data_list.append(dataclob[:,index])
-            else:
-                self._dependent_var.append(var)
-                dependent_data_list.append(dataclob[:,index])
+        colnames=unrolled_data.columns
+        self._controlled_var=[c for c in colnames if c in controlled_var]
+        self._dependent_var=[c for c in colnames if c not in controlled_var]
 
-
-        controlled_data=np.vstack(controlled_data_list).T
-        dependent_data=np.vstack(dependent_data_list).T
-
-        #squash floating point errors and +0/-0 issues
-        controlled_data[controlled_data==0.]=0.
-        dependent_data[dependent_data==0.]=0.
-
+        controlled_data=unrolled_data[self._controlled_var].as_matrix()
+        dependent_data=unrolled_data[self._dependent_var].as_matrix()
 
         #At this point there is:
-        #_readfilelist, which is a list of all the files we read from
+        #_datalist, which is a list of all the data we started with
         #_controlled_var, which is a list such as ["mu0","mu1","T"]
         #controlled_data, which is the data corresponding to the list above
         #_dependent_var, which is a list such as ["phi","N0","N1"]
@@ -77,12 +80,18 @@ class ThermoArray(object):
         #reshape the array with one dimension per controlled variable
 
         #Find the number of unique values for each controlled variable
-        self._params_shape=tuple(np.unique(col).shape[0] for col in controlled_data.T)   #consider using col.round(decimals=5))
+        self._params_shape=tuple(np.unique(col).shape[0] for col in controlled_data.T)
+
+        print self._params_shape
+        exit()
 
         #get the set of row indexes that sort the controlled variables in ascending order, starting with last column
         idx=np.lexsort(controlled_data[:,::-1].T)
 
         #sort and reshape the controlled variables
+        print controlled_data.shape
+        print (len(self._controlled_var),)+self._params_shape
+        print idx
         self._controlled_params=controlled_data[idx].T.reshape((len(self._controlled_var),)+self._params_shape)
 
         #sort and reshape the dependent variables

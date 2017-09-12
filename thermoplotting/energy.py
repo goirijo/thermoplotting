@@ -70,6 +70,30 @@ class Energy3(object):
 
         return ax
 
+    def projected_scatter(self, ax, x, y, z, *args, **kwargs):
+        """Scatter the energy data onto the given matplotlib object,
+        applying a shear transformation to it so that it lies on an
+        equilateral triangle. Saves the scattered data so that a hull
+        can be constructed with it later. The z values are not plotted
+        here though, only the x and y are scattered onto the
+        composition plane
+
+        :ax: matplotlib axis
+        :x: list of composition
+        :y: list of composition
+        :z: list of energy
+        :*args: stuff to pass to matplotlib
+        :**kwargs: more stuff to pass to matplotlib
+        :returns: matplotlib axis
+
+        """
+        digested=self.add_data(x,y,z)
+
+        #Scatter things
+        ax.scatter(digested[:,0],digested[:,1],*args,**kwargs)
+
+        return ax
+
     def draw_convex_hull(self, ax):
         """Using all the data that has been scattered so far, draw
         the convex hull
@@ -85,6 +109,40 @@ class Energy3(object):
         ax.add_collection3d(Line3DCollection(facets, colors='k', linewidths=0.2, linestyles=':'))
 
         return ax
+
+    def _draw_projected_facet(self, ax, facet, kwargs):
+        """Draw a single facet onto the composition plane
+
+        :ax: mpl axis
+        :facet: from scipy.Hull
+        :kwargs: Polygon arguments
+        :returns: ax
+
+        """
+        coords=facet[:,[0,1]]
+        tri=plt.Polygon(coords,**kwargs)
+        ax.add_patch(tri)
+        return ax
+
+    def draw_projected_convex_hull(self, ax, kwargs={"edgecolor":"black","linewidth":1.5,"fill":False}):
+        """Draw the convex hull, but suppress the energy axis, yielding projected facets
+        onto the composition plane
+
+        :ax: matplotlib axis
+        :kwargs: keyword arguments for the add_patch function
+        :returns: matplotlib axis
+
+        """
+        digestable=self._running_data.as_matrix(columns=[self._xlabel,self._ylabel,self._zlabel])
+        facets=thermoplotting.ternary.pruned_hull_facets(digestable)
+
+        for f in facets:
+            ax=self._draw_projected_facet(ax,f,kwargs)
+
+        ax.set_aspect('equal')
+
+        return ax
+
         
     
 class Energy2(object):
