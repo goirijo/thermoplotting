@@ -25,6 +25,11 @@ class ThermoArray(object):
         :returns: void or raises
 
         """
+        length=len(datalist[0])
+        for d in datalist:
+            if len(d)!=length:
+                raise ValueError("The list of data objects must all have the same lengh!")
+                
         return
 
     def _prepare_data(self, datalist, headerdict, decimals):
@@ -82,16 +87,10 @@ class ThermoArray(object):
         #Find the number of unique values for each controlled variable
         self._params_shape=tuple(np.unique(col).shape[0] for col in controlled_data.T)
 
-        print self._params_shape
-        exit()
-
         #get the set of row indexes that sort the controlled variables in ascending order, starting with last column
         idx=np.lexsort(controlled_data[:,::-1].T)
 
         #sort and reshape the controlled variables
-        print controlled_data.shape
-        print (len(self._controlled_var),)+self._params_shape
-        print idx
         self._controlled_params=controlled_data[idx].T.reshape((len(self._controlled_var),)+self._params_shape)
 
         #sort and reshape the dependent variables
@@ -206,7 +205,7 @@ class ThermoArray(object):
 
         """
         if param_name in self._dependent_var:
-            raise RuntimeError(param_name+" is already a dependent parameter!")
+            raise ValueError(param_name+" is already a dependent parameter!")
 
         self._dependent_var.append(param_name)
         self._dependent_params=np.append(self._dependent_params,[new_param],axis=0)

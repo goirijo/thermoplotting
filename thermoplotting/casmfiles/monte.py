@@ -345,7 +345,8 @@ class ConditionsDomain(object):
 
     def _arange(self, initial, final, increment):
         """Exacly like np.arange, but if the increment
-        is zero, return a single value
+        is zero, return a single value, and always include
+        the final value in the range of increments.
 
         :initial: float
         :final: float
@@ -353,10 +354,13 @@ class ConditionsDomain(object):
         :returns: list of float
 
         """
+        #Because the MC runs will go from initial *into* the final conditions
+        #(final conditions are calculated), you must include the end of the
+        #specified ranges in the grid
         if increment==0.0:
             return [initial]
         else:
-            return np.arange(initial,final,increment)
+            return np.arange(initial,final+increment,increment)
 
     def __init__(self, mu_domains, T_domain):
         """Initialize by specifying the edges of each chemical
