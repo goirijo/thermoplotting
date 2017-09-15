@@ -41,7 +41,7 @@ def scatter3(ax, x, y, z, *args, **kwargs):
     #Scatter things
     ax.scatter(digested[:,0],digested[:,1],digested[:,2],*args,**kwargs)
 
-    return 
+    return ax
 
 
 def projected_scatter(ax, x, y, *args, **kwargs):
@@ -148,12 +148,12 @@ class Energy3(object):
 
         """
         #Save the data
-        concatable=pd.DataFrame({self._xlabel:digested[:,0],self._ylabel:digested[:,1],self._zlabel:digested[:,2]})
+        concatable=pd.DataFrame({self._xlabel:np.ravel(x),self._ylabel:np.ravel(y),self._zlabel:np.ravel(z)})
         self._running_data=pd.concat((self._running_data,concatable))
 
         #shearing happens at plot time
 
-        return digested
+        return self._running_data
 
     def scatter(self, ax, *args, **kwargs):
         """Scatter the saved data onto the given matplotlib object,
