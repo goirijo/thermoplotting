@@ -167,7 +167,8 @@ class QueryData(object):
 
         """
         def q_arg(path):
-            return "struc_score("+os.path.abspath(path)+",total_score,"+str(weight)+")"
+            # return "struc_score("+os.path.abspath(path)+",total_score,"+str(weight)+")"
+            return "struc_score({},total_score,{})".format(os.path.abspath(path),weight)
 
         query_args=[q_arg(struc_paths_dict[k]) for k in struc_paths_dict]
 

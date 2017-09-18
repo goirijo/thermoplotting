@@ -111,7 +111,8 @@ class Subtracter(object):
         :returns: void
 
         """
-        new_dropped_columns=["corr("+str(i)+")" for i in indexes]
+        # new_dropped_columns=["corr("+str(i)+")" for i in indexes]
+        new_dropped_columns=["corr({})".format(i) for i in indexes]
         self._dropped_corr=self._dropped_corr+new_dropped_columns
         self._subcorr=self._sub_correlation_matrix()
 

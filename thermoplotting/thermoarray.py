@@ -116,7 +116,8 @@ class ThermoArray(object):
         else:
             print self._controlled_var
             print self._dependent_var
-            raise KeyError("The field "+str(field)+" was neither in the controlled or dependent variables lists")
+            # raise KeyError("The field "+str(field)+" was neither in the controlled or dependent variables lists")
+            raise KeyError("The field {} was neither in the controlled or dependent variables lists".format(field))
 
         return tuple(pretuple)
 
@@ -230,7 +231,8 @@ class ThermoArray(object):
 
         """
         if parameter not in self._controlled_var:
-            raise KeyError("The field "+str(field)+" was is not controlled")
+            # raise KeyError("The field "+str(field)+" was is not controlled")
+            raise KeyError("The field {} was is not controlled".format(field))
 
         pretuple=[0]*(len(self._params_shape)+1)
         pretuple[0]=self._controlled_var.index(parameter)

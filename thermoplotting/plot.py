@@ -40,5 +40,6 @@ def plot_label_for_cluster_size(clustersize):
         return texbf("Pairs")
 
     else:
-        return texbf(str(clustersize)+" body")
+        # return texbf(str(clustersize)+" body")
+        return texbf("{} body".format(clustersize))
     

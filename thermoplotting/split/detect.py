@@ -47,7 +47,8 @@ class Detector(object):
 
         """
         if specie not in self._species_to_basis:
-            raise ValueError("The required specie "+str(specie)+" doesn't participate in the basis set")
+            # raise ValueError("The required specie "+str(specie)+" doesn't participate in the basis set")
+            raise ValueError("The required specie {} doesn't participate in the basis set".format(specie))
         else:
             return
 
@@ -123,7 +124,8 @@ class Detector(object):
                     found=True
                     ix_map.append((subfunc["linear_function_index"],func["linear_function_index"]))
             if found==False and expect_all:
-                raise ValueError("Could not map cluster "+str(subfunc["linear_function_index"])+" onto this basis!")
+                # raise ValueError("Could not map cluster "+str(subfunc["linear_function_index"])+" onto this basis!")
+                raise ValueError("Could not map cluster {} onto this basis!".format(subfunc["linear_function_index"]))
         return ix_map
 
     def basis_species(self):

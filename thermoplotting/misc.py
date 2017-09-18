@@ -334,7 +334,8 @@ def confignames_of_size(sizes,proj=None):
 
     configdump=casm.project.query(proj,["configname"],all=True)
 
-    sizes=["SCEL"+str(s)+"_" for s in sizes]
+    # sizes=["SCEL"+str(s)+"_" for s in sizes]
+    sizes=["SCEL{}_".format(s) for s in sizes]
     subset=[config for config in configdump["configname"] if any(size in config for size in sizes)]
     return subset
 
