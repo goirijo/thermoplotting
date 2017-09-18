@@ -62,7 +62,7 @@ def json_split(filename):
 
     return headernames,np.vstack(datacolumns).T
 
-def truncate((headerstrings,datacolumns),headerdict):
+def truncate(headerstrings,datacolumns,headerdict):
     """After reading in a file, drop all the columns
     not in headerdict, and rename the ones that are there
     appropriately.

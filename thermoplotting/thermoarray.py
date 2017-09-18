@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-import thermoio
 import copy
 from misc import *
 
