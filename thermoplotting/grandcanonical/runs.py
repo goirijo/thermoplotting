@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from builtins import range
 
 import numpy
 from . import access
@@ -157,7 +158,7 @@ def gibbs(data, num_components):
     gcfree=access.free_energy(data,num_components)
     gibbsfree=numpy.copy(gcfree)
     
-    for component in xrange(0,num_components):
+    for component in range(0,num_components):
         currmu=access.mu(data,component,num_components)
         curspecies=access.species(data,component,num_components)
         gibbsfree+=currmu*curspecies

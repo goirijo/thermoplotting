@@ -17,7 +17,7 @@ def _non_sequential_raise(basis):
 
     try:
         assert(not np.any(np.array(expected_ix)-np.array(given_ix)))
-    except:
+    except AssertionError as e:
         raise ValueError("The provided indexes of the detector are not sequential! If you are sure you're not missing"
                 "basis functions, reindex the basis functions and try again.")
     return

@@ -63,7 +63,7 @@ class Subtracter(object):
         #but I'll leave it just in case
         try:
             assert(not np.any(from_ix-range(len(from_ix))))
-        except:
+        except AssertionError:
             raise ValueError("The provided indexes of the detector are not sequential! If you are sure you're not missing\
                     basis functions, reindex the basis functions and try again.")
 

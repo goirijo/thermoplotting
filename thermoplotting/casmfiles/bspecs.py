@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from builtins import range
 
 import json
 
@@ -43,7 +44,7 @@ def _insert_branch_specs(bspecs, lengths):
     :returns: dict
 
     """
-    clust_sizes=[i+2 for i in xrange(len(lengths))]
+    clust_sizes=[i+2 for i in range(len(lengths))]
     bspecs["orbit_branch_specs"]={str(s):{"max_length":l} for s,l in zip(clust_sizes,lengths)}
     return bspecs
 
