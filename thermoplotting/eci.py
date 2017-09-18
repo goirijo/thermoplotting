@@ -1,8 +1,10 @@
+from __future__ import absolute_import
+
 import pandas as pd
 import numpy as np
 import json
 import matplotlib.pyplot as plt
-import plot
+from . import plot
 
 def json_eci_to_pandas(jsoneci):
     """Go through an eci.json file and extract all

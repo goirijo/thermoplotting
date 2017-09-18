@@ -1,11 +1,13 @@
+from __future__ import absolute_import
+
+from . import ternary
+from . import plot
 import pandas as pd
 import numpy as np
-import thermoplotting.ternary
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
 from scipy.spatial import ConvexHull
 import matplotlib.pyplot as plt
-import plot
 
 def _digest_data(x,y,z):
     """Given 3D data, shear the x and y values so that the

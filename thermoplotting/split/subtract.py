@@ -1,5 +1,7 @@
-from clustcompare import *
-from detect import Detector
+from __future__ import absolute_import
+
+from .clustcompare import *
+from .detect import Detector
 
 class Subtracter(object):
 

@@ -1,6 +1,8 @@
+from __future__ import absolute_import
+
 import numpy as np
 from scipy import integrate
-from thermoplotting.misc import *
+from ..misc import *
 
 def beta(betavals, phivals, Omegaref, axis):
     """Integrate grand canonical energy through beta axis

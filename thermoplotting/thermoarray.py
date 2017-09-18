@@ -1,7 +1,9 @@
+from __future__ import absolute_import
+
 import numpy as np
 import pandas as pd
 import copy
-from misc import *
+from .misc import *
 
 class ThermoArray(object):
 

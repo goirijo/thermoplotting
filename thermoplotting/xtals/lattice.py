@@ -1,5 +1,7 @@
-from thermoplotting.ternary import normal
-from thermoplotting.misc import *
+from __future__ import absolute_import
+
+from ..ternary import normal
+from ..misc import *
 import itertools
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection 
 from mpl_toolkits.mplot3d.art3d import Line3DCollection 

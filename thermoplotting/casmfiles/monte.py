@@ -1,7 +1,9 @@
+from __future__ import absolute_import
+
 import pandas as pd
 import numpy as np
 import json
-from thermoplotting import all_confignames, json_to_file
+from ..misc import all_confignames, json_to_file
 import string
 import copy
 import os

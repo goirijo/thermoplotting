@@ -1,7 +1,9 @@
+from __future__ import absolute_import
+
 import pandas as pd
 import pickle
 import os
-from thermoplotting.misc import casm_query
+from ..misc import casm_query
 import thermoplotting.misc
 import casm
 

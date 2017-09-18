@@ -1,5 +1,7 @@
+from __future__ import absolute_import
+
 import numpy
-import access
+from . import access
 
 def prepare_input(filenamelist, num_components):
     """Read in from file list of averages and outputs them as new .thin

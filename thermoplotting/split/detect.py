@@ -1,4 +1,6 @@
-from clustcompare import *
+from __future__ import absolute_import
+
+from .clustcompare import *
 
 def _non_sequential_raise(basis):
     """Ensure that the linear function index of the cluster functions

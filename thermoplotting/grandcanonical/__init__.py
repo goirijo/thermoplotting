@@ -1,3 +1,5 @@
-import access
-import runs
-import integrate
+from __future__ import absolute_import
+
+from . import access
+from . import runs
+from . import integrate
