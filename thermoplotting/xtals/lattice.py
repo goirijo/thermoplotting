@@ -1,6 +1,9 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from builtins import zip
+from builtins import range
+from builtins import object
 
 from ..ternary import normal
 from ..misc import *
@@ -156,7 +159,7 @@ def wigner_seitz_points(latmat):
     """
     a,b,c=latmat.T
     #Range of lattice points that will be enough to enclose the Weigner Seitz cell
-    radpoints=range(-1,2)
+    radpoints=list(range(-1,2))
     counterpoints=[(x,y,z) for x in radpoints for y in radpoints for z in radpoints]
     gridpoints=np.array([x*a+y*b+z*c for x,y,z in counterpoints])
 
@@ -238,7 +241,7 @@ def voronoi_edge_centers(vectormat, fractional=True):
     """
     polygons=wigner_seitz_facets(vectormat)
     for p in polygons:
-        print polygon_edge_centers(p)
+        print(polygon_edge_centers(p))
     centers=np.concatenate([polygon_edge_centers(p) for p in polygons],axis=0)
 
 

@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import division
-from __future__ import print_function
+from builtins import zip
+from builtins import range
 
 import scipy.spatial as spa
 import scipy.linalg as lin

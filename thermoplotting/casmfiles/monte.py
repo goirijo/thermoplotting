@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import division
-from __future__ import print_function
+from builtins import zip
+from builtins import object
 
 import pandas as pd
 import numpy as np
@@ -379,7 +380,7 @@ class ConditionsDomain(object):
 
         self._ranges={labels[ix]:r for ix,r in enumerate(all_domains)}
 
-        initials,finals,increments=zip(*all_domains)
+        initials,finals,increments=list(zip(*all_domains))
         self._initials = list(initials)
         self._finals = list(finals)
         self._increments = list(increments)

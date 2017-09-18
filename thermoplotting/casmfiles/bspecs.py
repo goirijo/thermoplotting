@@ -1,6 +1,9 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from builtins import str
+from builtins import zip
+from builtins import object
 from builtins import range
 
 import json
@@ -99,7 +102,7 @@ class Bspecs(object):
         :returns: void
 
         """
-        print json.dumps(self._bspecsdict, sort_keys=True, indent=4)
+        print(json.dumps(self._bspecsdict, sort_keys=True, indent=4))
         return
 
 

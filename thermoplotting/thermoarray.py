@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from builtins import object
 
 import numpy as np
 import pandas as pd
@@ -116,8 +117,8 @@ class ThermoArray(object):
         elif field in self._dependent_var:
             pretuple[0]=self._dependent_var.index(field)
         else:
-            print self._controlled_var
-            print self._dependent_var
+            print(self._controlled_var)
+            print(self._dependent_var)
             # raise KeyError("The field "+str(field)+" was neither in the controlled or dependent variables lists")
             raise KeyError("The field {} was neither in the controlled or dependent variables lists".format(field))
 

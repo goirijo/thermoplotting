@@ -1,6 +1,9 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from builtins import zip
+from builtins import range
+from builtins import object
 
 from .clustcompare import *
 from .detect import Detector
@@ -62,7 +65,7 @@ class Subtracter(object):
         #This part is now redundant due to check at detector construction,
         #but I'll leave it just in case
         try:
-            assert(not np.any(from_ix-range(len(from_ix))))
+            assert(not np.any(from_ix-list(range(len(from_ix)))))
         except AssertionError:
             raise ValueError("The provided indexes of the detector are not sequential! If you are sure you're not missing\
                     basis functions, reindex the basis functions and try again.")
@@ -194,7 +197,7 @@ class Subtracter(object):
         """
         # eci_dict=[(ix,e) for ix,e in candidate.eci]
         # ix,ecivals=zip(*eci_dict)
-        ix,ecivals=zip(*candidate.eci)
+        ix,ecivals=list(zip(*candidate.eci))
 
         subeci=pd.Series(ecivals,ix)
         return self.sub_eci_trace(subeci)

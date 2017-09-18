@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from builtins import object
 
 import numpy as np
 
@@ -115,12 +116,12 @@ class CorrFiler(object):
 
         """
         row=self._matrix[indx,:]
-        print row
+        print(row)
         oneinds=row==1.00
         zeroinds=row==0.00
 
         if not np.alltrue(oneinds == np.logical_not(zeroinds)):
-            print "A row with values other than 0.0 and 1.0 has been selected!"
+            print("A row with values other than 0.0 and 1.0 has been selected!")
             exit()
 
         return oneinds
@@ -134,12 +135,12 @@ class CorrFiler(object):
 
         """
         row=self._matrix[indx,:]
-        print row
+        print(row)
         oneinds=row==1.00
         zeroinds=row==0.00
 
         if not np.alltrue(oneinds == np.logical_not(zeroinds)):
-            print "A row with values other than 0.0 and 1.0 has been selected!"
+            print("A row with values other than 0.0 and 1.0 has been selected!")
             exit()
 
         corrsum=np.sum(abs(self._matrix,axis=0))

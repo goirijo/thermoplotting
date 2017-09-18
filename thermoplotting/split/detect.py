@@ -1,6 +1,8 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from builtins import range
+from builtins import object
 
 from .clustcompare import *
 
@@ -12,7 +14,7 @@ def _non_sequential_raise(basis):
     :returns: void or raises
 
     """
-    expected_ix=range(len(basis["cluster_functions"]))
+    expected_ix=list(range(len(basis["cluster_functions"])))
     given_ix=[cf["linear_function_index"] for cf in basis["cluster_functions"]]
 
     try:

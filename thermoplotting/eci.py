@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import division
-from __future__ import print_function
+from builtins import zip
+from builtins import object
 
 import pandas as pd
 import numpy as np
@@ -74,7 +75,7 @@ def trace_eci(basis, ix_to_eci):
     """
     for cf in basis["cluster_functions"]:
         lfix=cf["linear_function_index"]
-        if lfix in ix_to_eci.keys():
+        if lfix in ix_to_eci:
             cf["eci"]=ix_to_eci[lfix]
         elif "eci" in cf:
             del cf["eci"]
