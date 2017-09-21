@@ -5,6 +5,7 @@ from builtins import object
 import pandas as pd
 import numpy as np
 
+
 def generate_table(confignames):
     """Create a DataFrame with a "selected"
     column
@@ -13,22 +14,22 @@ def generate_table(confignames):
     :returns: pd DataFrame
 
     """
-    selectrow=np.ones(len(confignames))
+    selectrow = np.ones(len(confignames))
 
-    selectpd=pd.DataFrame({"configname":confignames,"selected":selectrow})
+    selectpd = pd.DataFrame({"configname": confignames, "selected": selectrow})
     return selectpd
 
-class Selection(object):
 
+class Selection(object):
     """Holds a list of confignames and knows
     how to write them to a selection file"""
 
     def __init__(self, confignames):
         """Saves an initial list of configuration
         names."""
-        
-        self._confignames=confignames
-        self._pdrep=generate_table(self._confignames)
+
+        self._confignames = confignames
+        self._pdrep = generate_table(self._confignames)
 
     def _set_hashmode(self, hash_on):
         """Name the "configname" column with a leading
@@ -38,13 +39,15 @@ class Selection(object):
         :returns: pd DataFrame
 
         """
-        cols=self._pdrep.columns
+        cols = self._pdrep.columns
 
         if hash_on and "configname" in cols:
-            self._pdrep=self._pdrep.rename(columns={"configname":"#configname"})
+            self._pdrep = self._pdrep.rename(
+                columns={"configname": "#configname"})
 
         elif not hash_on and "#configname" in cols:
-            self._pdrep=self._pdrep.rename(columns={"#configname":"configname"})
+            self._pdrep = self._pdrep.rename(
+                columns={"#configname": "configname"})
 
         return self._pdrep
 
@@ -56,7 +59,7 @@ class Selection(object):
         :returns: void
 
         """
-        self._pdrep=self._set_hashmode(dumbhash)
-        self._pdrep.to_csv(filename,sep=' ',index=False)
+        self._pdrep = self._set_hashmode(dumbhash)
+        self._pdrep.to_csv(filename, sep=' ', index=False)
 
         return

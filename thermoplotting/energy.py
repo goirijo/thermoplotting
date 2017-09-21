@@ -11,7 +11,8 @@ from mpl_toolkits.mplot3d.art3d import Line3DCollection
 from scipy.spatial import ConvexHull
 import matplotlib.pyplot as plt
 
-def _digest_data(x,y,z):
+
+def _digest_data(x, y, z):
     """Given 3D data, shear the x and y values so that the
     space is an equilateral triangle
 
@@ -21,10 +22,11 @@ def _digest_data(x,y,z):
     :returns: np array
 
     """
-    digestable=np.array((np.ravel(x),np.ravel(y),np.ravel(z))).T
-    digested=thermoplotting.ternary.equil_trans(digestable)
+    digestable = np.array((np.ravel(x), np.ravel(y), np.ravel(z))).T
+    digested = ternary.equil_trans(digestable)
 
     return digested
+
 
 def scatter3(ax, x, y, z, *args, **kwargs):
     """Scatter the given data onto the given matplotlib object,
@@ -40,10 +42,10 @@ def scatter3(ax, x, y, z, *args, **kwargs):
     :returns: matplotlib axis
 
     """
-    digested=_digest_data(x,y,z)
+    digested = _digest_data(x, y, z)
 
     #Scatter things
-    ax.scatter(digested[:,0],digested[:,1],digested[:,2],*args,**kwargs)
+    ax.scatter(digested[:, 0], digested[:, 1], digested[:, 2], *args, **kwargs)
 
     return ax
 
@@ -61,15 +63,17 @@ def projected_scatter(ax, x, y, *args, **kwargs):
     :returns: matplotlib axis
 
     """
-    digested=_digest_data(x,y,y)    #z values don't matter, since we're projecting
+    #z values don't matter, since we're projecting
+    digested = _digest_data(x, y, y)
     #Scatter things
-    ax.scatter(digested[:,0],digested[:,1],*args,**kwargs)
+    ax.scatter(digested[:, 0], digested[:, 1], *args, **kwargs)
 
-    ax.set_xlim([-0.1,1.1])
-    ax.set_ylim([-0.1,1.1])
+    ax.set_xlim([-0.1, 1.1])
+    ax.set_ylim([-0.1, 1.1])
     ax.set_aspect('equal')
 
     return ax
+
 
 def draw_convex_hull3(ax, x, y, z):
     """Using all the given data, plot a 3D convex hull
@@ -82,13 +86,15 @@ def draw_convex_hull3(ax, x, y, z):
     :returns: matplotlib axis
 
     """
-    digested=_digest_data(x,y,z)
-    facets=thermoplotting.ternary.pruned_hull_facets(digested)
+    digested = _digest_data(x, y, z)
+    facets = ternary.pruned_hull_facets(digested)
 
     ax.add_collection3d(Poly3DCollection(facets, facecolors='w', linewidths=2))
-    ax.add_collection3d(Line3DCollection(facets, colors='k', linewidths=0.2, linestyles=':'))
+    ax.add_collection3d(
+        Line3DCollection(facets, colors='k', linewidths=0.2, linestyles=':'))
 
     return ax
+
 
 def _draw_projected_facet(ax, facet, kwargs):
     """Draw a single facet onto the composition plane
@@ -99,12 +105,21 @@ def _draw_projected_facet(ax, facet, kwargs):
     :returns: ax
 
     """
-    coords=facet[:,[0,1]]
-    tri=plt.Polygon(coords,**kwargs)
+    coords = facet[:, [0, 1]]
+    tri = plt.Polygon(coords, **kwargs)
     ax.add_patch(tri)
     return ax
 
-def draw_projected_convex_hull(ax, x, y, z, kwargs={"edgecolor":"black","linewidth":1.5,"fill":False}):
+
+def draw_projected_convex_hull(ax,
+                               x,
+                               y,
+                               z,
+                               kwargs={
+                                   "edgecolor": "black",
+                                   "linewidth": 1.5,
+                                   "fill": False
+                               }):
     """Draw the convex hull, but suppress the energy axis, yielding projected facets
     onto the composition plane
 
@@ -113,20 +128,24 @@ def draw_projected_convex_hull(ax, x, y, z, kwargs={"edgecolor":"black","linewid
     :returns: matplotlib axis
 
     """
-    digested=_digest_data(x,y,z)
-    facets=thermoplotting.ternary.pruned_hull_facets(digested)
+    digested = _digest_data(x, y, z)
+    facets = ternary.pruned_hull_facets(digested)
 
     for f in facets:
-        ax=_draw_projected_facet(ax,f,kwargs)
+        ax = _draw_projected_facet(ax, f, kwargs)
+
+    ax.set_xlim([-0.1, 1.1])
+    ax.set_ylim([-0.1, 1.1])
+    ax.set_aspect('equal')
 
     return ax
 
 class Energy3(object):
-
     """Handles plotting ternary energy, with
     a convex hull"""
 
-    def __init__(self, xlabel="comp(a)", ylabel="comb(b)", zlabel="Energy [eV]"):
+    def __init__(self, xlabel="comp(a)", ylabel="comb(b)",
+                 zlabel="Energy [eV]"):
         """Object construction, does pretty much nothing.
 
         :xlabel: Label for x-axis
@@ -135,11 +154,12 @@ class Energy3(object):
         :returns: TODO
 
         """
-        self._xlabel=xlabel
-        self._ylabel=ylabel
-        self._zlabel=zlabel
+        self._xlabel = xlabel
+        self._ylabel = ylabel
+        self._zlabel = zlabel
 
-        self._running_data=pd.DataFrame(columns=[self._xlabel,self._ylabel,self._zlabel])
+        self._running_data = pd.DataFrame(
+            columns=[self._xlabel, self._ylabel, self._zlabel])
 
     def add_data(self, x, y, z):
         """Apply shear transformation to data to create equilateral triangle and
@@ -152,8 +172,12 @@ class Energy3(object):
 
         """
         #Save the data
-        concatable=pd.DataFrame({self._xlabel:np.ravel(x),self._ylabel:np.ravel(y),self._zlabel:np.ravel(z)})
-        self._running_data=pd.concat((self._running_data,concatable))
+        concatable = pd.DataFrame({
+            self._xlabel: np.ravel(x),
+            self._ylabel: np.ravel(y),
+            self._zlabel: np.ravel(z)
+        })
+        self._running_data = pd.concat((self._running_data, concatable))
 
         #shearing happens at plot time
 
@@ -170,12 +194,9 @@ class Energy3(object):
         :returns: matplotlib axis
 
         """
-        ax=scatter3(
-                ax,
-                self._running_data[self._xlabel],
-                self._running_data[self._ylabel],
-                self._running_data[self._zlabel]
-                )
+        ax = scatter3(ax, self._running_data[self._xlabel],
+                      self._running_data[self._ylabel],
+                      self._running_data[self._zlabel])
         return ax
 
     def projected_scatter(self, ax, *args, **kwargs):
@@ -188,12 +209,9 @@ class Energy3(object):
         :returns: matplotlib axis
 
         """
-        ax=projected_scatter(
-                ax,
-                self._running_data[self._xlabel],
-                self._running_data[self._ylabel],
-                self._running_data[self._zlabel]
-                )
+        ax = projected_scatter(ax, self._running_data[self._xlabel],
+                               self._running_data[self._ylabel],
+                               self._running_data[self._zlabel])
         return ax
 
     def draw_convex_hull(self, ax):
@@ -204,16 +222,17 @@ class Energy3(object):
         :returns: matplotlib axis
 
         """
-        ax=draw_convex_hull3(
-                ax,
-                self._running_data[self._xlabel],
-                self._running_data[self._ylabel],
-                self._running_data[self._zlabel]
-                )
+        ax = draw_convex_hull3(ax, self._running_data[self._xlabel],
+                               self._running_data[self._ylabel],
+                               self._running_data[self._zlabel])
         return ax
 
-
-    def draw_projected_convex_hull(self, ax, kwargs={"edgecolor":"black","linewidth":1.5,"fill":False}):
+    def draw_projected_convex_hull(
+            self,
+            ax,
+            kwargs={"edgecolor": "black",
+                    "linewidth": 1.5,
+                    "fill": False}):
         """Draw the convex hull, but suppress the energy axis, yielding projected facets
         onto the composition plane
 
@@ -222,21 +241,16 @@ class Energy3(object):
         :returns: matplotlib axis
 
         """
-        ax=draw_projected_convex_hull(
-                ax,
-                self._running_data[self._xlabel],
-                self._running_data[self._ylabel],
-                self._running_data[self._zlabel]
-                )
+        ax = draw_projected_convex_hull(ax, self._running_data[self._xlabel],
+                                        self._running_data[self._ylabel],
+                                        self._running_data[self._zlabel])
 
         ax.set_aspect('equal')
 
         return ax
 
-        
-    
-class Energy2(object):
 
+class Energy2(object):
     """Handles plotting binary energies, complete with
     a convex hull"""
 
@@ -249,8 +263,8 @@ class Energy2(object):
         """
         self._xlabel = plot.texmrm(xlabel)
         self._ylabel = plot.texbf(ylabel)
-        
-        self._running_data={}
+
+        self._running_data = {}
 
     def add_data(self, label, x, y):
         """Add a set of data you want to plot onto a figure
@@ -261,11 +275,10 @@ class Energy2(object):
         :returns: self
 
         """
-        concatable=pd.DataFrame({self._xlabel:x,self._ylabel:y})
-        self._running_data[label]=concatable
+        concatable = pd.DataFrame({self._xlabel: x, self._ylabel: y})
+        self._running_data[label] = concatable
 
         return self
-        
 
     def scatter(self, ax, label, *args, **kwargs):
         """Scatter the energy data onto the given matplotlib object.
@@ -278,9 +291,9 @@ class Energy2(object):
         :returns: matplotlib axis
 
         """
-        x=self._running_data[label][self._xlabel]
-        y=self._running_data[label][self._ylabel]
-        ax.scatter(x,y,*args,**kwargs)
+        x = self._running_data[label][self._xlabel]
+        y = self._running_data[label][self._ylabel]
+        ax.scatter(x, y, *args, **kwargs)
 
         return ax
 
@@ -295,11 +308,12 @@ class Energy2(object):
         :returns: matplotlib axis
 
         """
-        hullable=self._running_data[label]
-        hull=ConvexHull(hullable)
+        hullable = self._running_data[label]
+        hull = ConvexHull(hullable)
 
         for simplex in hull.simplices:
-            ax.plot(hullable.ix[simplex][self._xlabel],hullable.ix[simplex][self._ylabel],*args,**kwargs)
+            ax.plot(hullable.ix[simplex][self._xlabel],
+                    hullable.ix[simplex][self._ylabel], *args, **kwargs)
             # ax.scatter(hullable.ix[simplex][self._xlabel],hullable.ix[simplex][self._ylabel],s=20,c='k')
 
         return ax
