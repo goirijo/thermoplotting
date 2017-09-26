@@ -11,6 +11,7 @@ import string
 import copy
 import os
 
+
 def generate_condition_from_dict(cond_dict):
     """Given a dictionary of settings values, generate a condition
     for a Monte Carlo run. The keys associated with the parametric
@@ -23,7 +24,8 @@ def generate_condition_from_dict(cond_dict):
     """
     pass
 
-def generate_condition(pots,temperature,tolerance=0.001):
+
+def generate_condition(pots, temperature, tolerance=0.001):
     """Create a json object that contains the information for one
     of the custom conditions, so that you can stick it into a list
 
@@ -32,17 +34,18 @@ def generate_condition(pots,temperature,tolerance=0.001):
     :tolerance: float
     :returns: dict
     """
-    settings=dict()
-    settings["param_chem_pot"]=dict()
-    for ix,mu in enumerate(pots):
-        label=string.ascii_lowercase[ix]
-        settings["param_chem_pot"][label]=mu
-    settings["temperature"]=temperature
-    settings["tolerance"]=tolerance
+    settings = dict()
+    settings["param_chem_pot"] = dict()
+    for ix, mu in enumerate(pots):
+        label = string.ascii_lowercase[ix]
+        settings["param_chem_pot"][label] = mu
+    settings["temperature"] = temperature
+    settings["tolerance"] = tolerance
 
     return settings
 
-def generate_incremental_condition_set(inits,finals,incs):
+
+def generate_incremental_condition_set(inits, finals, incs):
     """Create a dict of three conditions: initial, incremental, and
     final, by passing three sets of arguments you would pass to
     generate_condition
@@ -53,15 +56,19 @@ def generate_incremental_condition_set(inits,finals,incs):
     :returns: dict
 
     """
-    settings_combo={}
-    slots=("initial_conditions","final_conditions","incremental_conditions")
+    settings_combo = {}
+    slots = ("initial_conditions", "final_conditions", "incremental_conditions")
 
-    for slot,sett in zip(slots,(inits,finals,incs)):
-        settings[slot]=generate_condition(*sett)
+    for slot, sett in zip(slots, (inits, finals, incs)):
+        settings[slot] = generate_condition(*sett)
 
     return settings_combo
 
-def dirname_from_condition(condition, ignore=[],mu_format="{0:.2f}",T_format="{0:.1f}"):
+
+def dirname_from_condition(condition,
+                           ignore=[],
+                           mu_format="{0:.2f}",
+                           T_format="{0:.1f}"):
     """Given a particular Monte Carlo settings condition, generate
     a name for a directory with format mua_$mua__mub_$mub__T_$T
 
@@ -70,19 +77,20 @@ def dirname_from_condition(condition, ignore=[],mu_format="{0:.2f}",T_format="{0
     :returns: str
 
     """
-    dirname=""
-    pots=condition["param_chem_pot"]
+    dirname = ""
+    pots = condition["param_chem_pot"]
     for c in pots:
         if c in ignore:
             continue
         else:
-            mustr="mu{}".format(c)
-            dirname+=mustr+"_"+mu_format.format(pots[c])+"__"
+            mustr = "mu{}".format(c)
+            dirname += mustr + "_" + mu_format.format(pots[c]) + "__"
 
     if "T" not in ignore:
-        dirname+="T_"+T_format.format(condition["temperature"])
+        dirname += "T_" + T_format.format(condition["temperature"])
 
     return dirname
+
 
 # def direname_from_incremental_driver(driver_settings):
 #     """Create a directory name as specified by dirname_from_condition, but suppress
@@ -109,6 +117,7 @@ def dirname_from_condition(condition, ignore=[],mu_format="{0:.2f}",T_format="{0
 
 #     return dirname_from_condition(initials,ignore)
 
+
 def atom_frac_cols(fracs):
     """Return columns corresponding to the average atom fraction
 
@@ -118,6 +127,7 @@ def atom_frac_cols(fracs):
     """
     return ["<atom_frac({})>".format(f) for f in fracs]
 
+
 def comp_cols(comps):
     """Return columns corresponding to the average composition
 
@@ -126,6 +136,7 @@ def comp_cols(comps):
 
     """
     return ["<comp({})>".format(c) for c in comps]
+
 
 def chem_pot_cols(chems):
     """Return columns corresponding to the chemical potential
@@ -149,22 +160,28 @@ def singular_streak_along_axis(settings, fixed_cond, axis, axis_range, tols):
     :returns: dict
 
     """
-    fixed_cond[axis]=axis_range[0]
-    settings.set_initial_conditions([fixed_cond[k] for k in string.ascii_lowercase if k in fixed_cond],fixed_cond["T"],tols[0])
+    fixed_cond[axis] = axis_range[0]
+    settings.set_initial_conditions(
+        [fixed_cond[k] for k in string.ascii_lowercase
+         if k in fixed_cond], fixed_cond["T"], tols[0])
 
-
-    fixed_cond[axis]=axis_range[1]
-    settings.set_final_conditions([fixed_cond[k] for k in string.ascii_lowercase if k in fixed_cond],fixed_cond["T"],tols[1])
+    fixed_cond[axis] = axis_range[1]
+    settings.set_final_conditions(
+        [fixed_cond[k] for k in string.ascii_lowercase
+         if k in fixed_cond], fixed_cond["T"], tols[1])
 
     for k in fixed_cond:
         if k in string.ascii_lowercase:
-            fixed_cond[k]=0.0
-    fixed_cond[axis]=axis_range[2]
-    settings.set_incremental_conditions([fixed_cond[k] for k in string.ascii_lowercase if k in fixed_cond],fixed_cond["T"],tols[2])
+            fixed_cond[k] = 0.0
+    fixed_cond[axis] = axis_range[2]
+    settings.set_incremental_conditions(
+        [fixed_cond[k] for k in string.ascii_lowercase
+         if k in fixed_cond], fixed_cond["T"], tols[2])
 
     return settings.settings()
 
-def streak_along_axis(settings, domain, axis, tols=(0.001,0.001,0.001)):
+
+def streak_along_axis(settings, domain, axis, tols=(0.001, 0.001, 0.001)):
     """Choose a direction in thermodynamic space that the Monte Carlo simulation
     is going to run in, and construct a grid of values for all the other variables.
     Return settings that keep every condition on the grid constant, but vary
@@ -180,22 +197,28 @@ def streak_along_axis(settings, domain, axis, tols=(0.001,0.001,0.001)):
     :returns: list of dict
 
     """
-    if settings.driver_mode()!="incremental":
-        raise UserWarning("The settings passed for creating a streak are NOT incremental!")
+    if settings.driver_mode() != "incremental":
+        raise UserWarning(
+            "The settings passed for creating a streak are NOT incremental!")
     if axis not in domain._axes:
-        raise ValueError("The specified axis '{}' is not in bounded by the condition domain.".format(axis))
+        raise ValueError(
+            "The specified axis '{}' is not in bounded by the condition domain.".
+            format(axis))
 
-    non_streak_axes=[x for x in domain._axes if x!=axis]
-    fixed_cond_vals=domain.grid(non_streak_axes)
+    non_streak_axes = [x for x in domain._axes if x != axis]
+    fixed_cond_vals = domain.grid(non_streak_axes)
 
-    dict_fix=fixed_cond_vals.to_dict(orient='records')
-    streak_range=domain._ranges[axis]
-        
-    settings_streak=[singular_streak_along_axis(settings, fixed, axis, streak_range, tols) for fixed in dict_fix]
+    dict_fix = fixed_cond_vals.to_dict(orient='records')
+    streak_range = domain._ranges[axis]
+
+    settings_streak = [
+        singular_streak_along_axis(settings, fixed, axis, streak_range, tols)
+        for fixed in dict_fix
+    ]
     return settings_streak
-        
-class Monte(object):
 
+
+class Monte(object):
     """Construct a json file for the `casm monte` command. Currently requires
     a preexisting json object to start with that has all the fieds, letting you
     edit them."""
@@ -205,9 +228,9 @@ class Monte(object):
         :returns: json
 
         """
-        raise NotImplementedError("Default json values for monte are not currently implemented")
+        raise NotImplementedError(
+            "Default json values for monte are not currently implemented")
         return {}
-        
 
     def __init__(self, base):
         """Initialize with a starting point
@@ -225,14 +248,15 @@ class Monte(object):
 
         """
         if check_value:
-            all_configs=all_confignames()
+            all_configs = all_confignames()
             for c in all_configs:
-                if not any(all_configs==configname):
-                    raise ValueError("The requested motif is not an existing configuration!")
+                if not any(all_configs == configname):
+                    raise ValueError(
+                        "The requested motif is not an existing configuration!")
 
-        self._json["driver"]["motif"]["configname"]=configname
+        self._json["driver"]["motif"]["configname"] = configname
         return self._json
-        
+
     def set_driver_mode(self, mode):
         """Set the driver mode ("custom" or "incremental")
 
@@ -240,10 +264,11 @@ class Monte(object):
         :returns: json
 
         """
-        if mode not in ("custom","incremental"):
-            raise ValueError("The requested mode is neither 'custom' or 'incremental'")
+        if mode not in ("custom", "incremental"):
+            raise ValueError(
+                "The requested mode is neither 'custom' or 'incremental'")
 
-        self._json["driver"]["mode"]=mode
+        self._json["driver"]["mode"] = mode
         return self._json
 
     def driver_mode(self):
@@ -265,12 +290,11 @@ class Monte(object):
         :returns: json
 
         """
-        assert(typeid in ["initial", "incremental", "final"])
-        cond=generate_condition(pots,temperature,tol)
-        self._json["driver"][typeid+"_conditions"]=cond
+        assert (typeid in ["initial", "incremental", "final"])
+        cond = generate_condition(pots, temperature, tol)
+        self._json["driver"][typeid + "_conditions"] = cond
 
         return self._json
-
 
     def set_initial_conditions(self, pots, temperature, tol=0.001):
         """Given a list of chemical potentials and a temperature, set
@@ -282,7 +306,7 @@ class Monte(object):
         :returns: json
 
         """
-        self._json=self._set_condition_type("initial",pots, temperature,tol)
+        self._json = self._set_condition_type("initial", pots, temperature, tol)
         return self._json
 
     def set_final_conditions(self, pots, temperature, tol=0.001):
@@ -295,9 +319,8 @@ class Monte(object):
         :returns: json
 
         """
-        self._json=self._set_condition_type("final",pots, temperature,tol)
+        self._json = self._set_condition_type("final", pots, temperature, tol)
         return self._json
-
 
     def set_incremental_conditions(self, pots, temperature, tol=0.001):
         """Given a list of chemical potentials and a temperature, set
@@ -309,7 +332,8 @@ class Monte(object):
         :returns: json
 
         """
-        self._json=self._set_condition_type("incremental",pots, temperature,tol)
+        self._json = self._set_condition_type("incremental", pots, temperature,
+                                              tol)
         return self._json
 
     def set_simulation_cell(self, transf_mat):
@@ -320,9 +344,9 @@ class Monte(object):
         :returns: json
 
         """
-        serializable=transf_mat.tolist()
+        serializable = transf_mat.tolist()
         # serializable=transf_mat.T.tolist()        #WHICH IS IT????
-        self._json["supercell"]=serializable
+        self._json["supercell"] = serializable
         return self._json
 
     def to_json(self, filename):
@@ -333,7 +357,7 @@ class Monte(object):
 
         """
         with open(filename, 'w') as f:
-            json.dump(data,f,indent=4,sort_keys=True)
+            json.dump(data, f, indent=4, sort_keys=True)
         return
 
     def settings(self):
@@ -343,8 +367,8 @@ class Monte(object):
         """
         return copy.deepcopy(self._json)
 
-class ConditionsDomain(object):
 
+class ConditionsDomain(object):
     """Given initial, final and incremental values, store
     the domain of the different chemical potentials"""
 
@@ -362,10 +386,10 @@ class ConditionsDomain(object):
         #Because the MC runs will go from initial *into* the final conditions
         #(final conditions are calculated), you must include the end of the
         #specified ranges in the grid
-        if increment==0.0:
+        if increment == 0.0:
             return [initial]
         else:
-            return np.arange(initial,final+increment,increment)
+            return np.arange(initial, final + increment, increment)
 
     def __init__(self, mu_domains, T_domain):
         """Initialize by specifying the edges of each chemical
@@ -375,24 +399,24 @@ class ConditionsDomain(object):
         :T_domain: initial,final,increment of temperature
 
         """
-        labels=string.ascii_lowercase[0:len(mu_domains)]+"T"
-        all_domains=mu_domains+[T_domain]
+        labels = string.ascii_lowercase[0:len(mu_domains)] + "T"
+        all_domains = mu_domains + [T_domain]
 
-        self._ranges={labels[ix]:r for ix,r in enumerate(all_domains)}
+        self._ranges = {labels[ix]: r for ix, r in enumerate(all_domains)}
 
-        initials,finals,increments=list(zip(*all_domains))
+        initials, finals, increments = list(zip(*all_domains))
         self._initials = list(initials)
         self._finals = list(finals)
         self._increments = list(increments)
 
+        self._domain = {}
+        for ix, (ini, fin, inc) in enumerate(
+                zip(self._initials, self._finals, self._increments)):
+            l = labels[ix]
+            self._domain[l] = {}
+            self._domain[l] = self._arange(ini, fin, inc)
 
-        self._domain={}
-        for ix, (ini,fin,inc) in enumerate(zip(self._initials,self._finals,self._increments)):
-            l=labels[ix]
-            self._domain[l]={}
-            self._domain[l]=self._arange(ini,fin,inc)
-
-        self._axes=[k for k in self._domain]
+        self._axes = [k for k in self._domain]
 
     def grid(self, axes):
         """Grid up the conditions for all the specified axes and return
@@ -402,12 +426,13 @@ class ConditionsDomain(object):
         :returns: pandas DataFrame
 
         """
-        mesh=np.meshgrid(*(self._domain[k] for k in axes))
-        cond_combos=np.reshape(mesh,(len(axes),-1))
-        return pd.DataFrame({k:cond_combos[ix] for ix,k in enumerate(axes)})
+        mesh = np.meshgrid(*(self._domain[k] for k in axes))
+        cond_combos = np.reshape(mesh, (len(axes), -1))
+        return pd.DataFrame({k: cond_combos[ix] for ix, k in enumerate(axes)})
 
     def axes(self):
         return self.axes[:]
+
 
 def singular_streak_along_axis(settings, fixed_cond, axis, axis_range, tols):
     """Edit the conditions for initial, final and incremental conditions
@@ -421,22 +446,28 @@ def singular_streak_along_axis(settings, fixed_cond, axis, axis_range, tols):
     :returns: dict
 
     """
-    fixed_cond[axis]=axis_range[0]
-    settings.set_initial_conditions([fixed_cond[k] for k in string.ascii_lowercase if k in fixed_cond],fixed_cond["T"],tols[0])
+    fixed_cond[axis] = axis_range[0]
+    settings.set_initial_conditions(
+        [fixed_cond[k] for k in string.ascii_lowercase
+         if k in fixed_cond], fixed_cond["T"], tols[0])
 
-
-    fixed_cond[axis]=axis_range[1]
-    settings.set_final_conditions([fixed_cond[k] for k in string.ascii_lowercase if k in fixed_cond],fixed_cond["T"],tols[1])
+    fixed_cond[axis] = axis_range[1]
+    settings.set_final_conditions(
+        [fixed_cond[k] for k in string.ascii_lowercase
+         if k in fixed_cond], fixed_cond["T"], tols[1])
 
     #All increments except the axis should be zero
     for k in fixed_cond:
-        fixed_cond[k]=0.0
-    fixed_cond[axis]=axis_range[2]
-    settings.set_incremental_conditions([fixed_cond[k] for k in string.ascii_lowercase if k in fixed_cond],fixed_cond["T"],tols[2])
+        fixed_cond[k] = 0.0
+    fixed_cond[axis] = axis_range[2]
+    settings.set_incremental_conditions(
+        [fixed_cond[k] for k in string.ascii_lowercase
+         if k in fixed_cond], fixed_cond["T"], tols[2])
 
     return settings.settings()
 
-def streak_along_axis(settings, domain, axis, tols=(0.001,0.001,0.001)):
+
+def streak_along_axis(settings, domain, axis, tols=(0.001, 0.001, 0.001)):
     """Choose a direction in thermodynamic space that the Monte Carlo simulation
     is going to run in, and construct a grid of values for all the other variables.
     Return settings that keep every condition on the grid constant, but vary
@@ -452,23 +483,35 @@ def streak_along_axis(settings, domain, axis, tols=(0.001,0.001,0.001)):
     :returns: list of dict
 
     """
-    if settings.driver_mode()!="incremental":
-        raise UserWarning("The settings passed for creating a streak are NOT incremental!")
+    if settings.driver_mode() != "incremental":
+        raise UserWarning(
+            "The settings passed for creating a streak are NOT incremental!")
     if axis not in domain._axes:
-        raise ValueError("The specified axis '{}' is not in bounded by the condition domain.".format(axis))
+        raise ValueError(
+            "The specified axis '{}' is not in bounded by the condition domain.".
+            format(axis))
 
-    non_streak_axes=[x for x in domain._axes if x!=axis]
-    fixed_cond_vals=domain.grid(non_streak_axes)
+    non_streak_axes = [x for x in domain._axes if x != axis]
+    fixed_cond_vals = domain.grid(non_streak_axes)
 
-    dict_fix=fixed_cond_vals.to_dict(orient='records')
-    streak_range=domain._ranges[axis]
-        
-    settings_streak=[singular_streak_along_axis(settings, fixed, axis, streak_range, tols) for fixed in dict_fix]
+    dict_fix = fixed_cond_vals.to_dict(orient='records')
+    streak_range = domain._ranges[axis]
+
+    settings_streak = [
+        singular_streak_along_axis(settings, fixed, axis, streak_range, tols)
+        for fixed in dict_fix
+    ]
     return settings_streak
-        
 
-def prepare_streak_directories(settings, domain, streak_axis, motif,
-        settings_filename="monte_settings.json", streak_dirname=None, motif_dirname=None):
+
+def prepare_streak_directories(settings,
+                               domain,
+                               streak_axis,
+                               motif,
+                               settings_filename="monte_settings.json",
+                               streak_dirname=None,
+                               motif_dirname=None,
+                               **kwargs):
     """
     Given starting settings and a domain for the conditions, select a thermodynamic variable as an axis
     through which to create the incremental conditions. A settings file is generated for every gridpoint for a
@@ -485,23 +528,21 @@ def prepare_streak_directories(settings, domain, streak_axis, motif,
 
     """
     if streak_dirname is None:
-        streak_dirname="streak_{}".format(streak_axis)
+        streak_dirname = "streak_{}".format(streak_axis)
 
     if motif_dirname is None:
-        motif_dirname=motif.replace('/','.')
+        motif_dirname = motif.replace('/', '.')
 
-    basedir=os.path.join(streak_dirname,motif_dirname)
+    basedir = os.path.join(streak_dirname, motif_dirname)
 
     settings.set_motif(motif)
-    streaks=streak_along_axis(settings,domain,streak_axis)
-
+    streaks = streak_along_axis(settings, domain, streak_axis)
 
     for s in streaks:
-        streakdir=dirname_from_condition(s["driver"]["initial_conditions"],[streak_axis])
-        targetdir=os.path.join(basedir,streakdir)
+        streakdir = dirname_from_condition(s["driver"]["initial_conditions"],
+                                           [streak_axis],**kwargs)
+        targetdir = os.path.join(basedir, streakdir)
         os.makedirs(targetdir)
-        json_to_file(s,os.path.join(targetdir,settings_filename))
+        json_to_file(s, os.path.join(targetdir, settings_filename))
 
     return
-
-

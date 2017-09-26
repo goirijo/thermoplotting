@@ -3,3 +3,4 @@
 thermoplotting.egg-info
 dist
 pypiupload.sh
+*.bak

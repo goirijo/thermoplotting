@@ -180,6 +180,7 @@ def pruned_hull_facets(data_list,tol=0.00001):
     :returns: array of facets (collection of 3 points)
 
     """
+    #TODO: Consolidate with routines in hull module
     new_tri = spa.ConvexHull(data_list) #pylint: disable=no-member
     good_simplex=[]
 
