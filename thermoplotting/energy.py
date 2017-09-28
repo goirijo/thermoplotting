@@ -140,6 +140,7 @@ def draw_projected_convex_hull(ax,
 
     return ax
 
+
 class Energy3(object):
     """Handles plotting ternary energy, with
     a convex hull"""
@@ -264,23 +265,27 @@ class Energy2(object):
         self._xlabel = plot.texmrm(xlabel)
         self._ylabel = plot.texbf(ylabel)
 
-        self._running_data = {}
+        self._running_data = pd.DataFrame(columns=[self._xlabel, self._ylabel])
 
-    def add_data(self, label, x, y):
+    def add_data(self, x, y):
         """Add a set of data you want to plot onto a figure
 
-        :label: str
         :x: composition
         :y: energy
-        :returns: self
+        :returns: np array
 
         """
-        concatable = pd.DataFrame({self._xlabel: x, self._ylabel: y})
-        self._running_data[label] = concatable
+        #Save the data
+        concatable = pd.DataFrame({
+            self._xlabel: np.ravel(x),
+            self._ylabel: np.ravel(y)
+        })
 
-        return self
+        self._running_data = pd.concat((self._running_data, concatable))
 
-    def scatter(self, ax, label, *args, **kwargs):
+        return self._running_data
+
+    def scatter(self, ax, *args, **kwargs):
         """Scatter the energy data onto the given matplotlib object.
         Saves the data so the hull can be constructed later.
 
@@ -291,13 +296,13 @@ class Energy2(object):
         :returns: matplotlib axis
 
         """
-        x = self._running_data[label][self._xlabel]
-        y = self._running_data[label][self._ylabel]
+        x = self._running_data[self._xlabel]
+        y = self._running_data[self._ylabel]
         ax.scatter(x, y, *args, **kwargs)
 
         return ax
 
-    def draw_convex_hull(self, ax, label, *args, **kwargs):
+    def draw_convex_hull(self, ax, *args, **kwargs):
         """Use the data of all the scattered points to draw the
         convex hull
 
@@ -308,12 +313,11 @@ class Energy2(object):
         :returns: matplotlib axis
 
         """
-        hullable = self._running_data[label]
+        hullable = self._running_data.as_matrix()
         hull = ConvexHull(hullable)
 
         for simplex in hull.simplices:
-            ax.plot(hullable.ix[simplex][self._xlabel],
-                    hullable.ix[simplex][self._ylabel], *args, **kwargs)
+            ax.plot(hullable[simplex, 0], hullable[simplex, 1], *args, **kwargs)
             # ax.scatter(hullable.ix[simplex][self._xlabel],hullable.ix[simplex][self._ylabel],s=20,c='k')
 
         return ax

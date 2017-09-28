@@ -3,7 +3,6 @@ from __future__ import division
 import pandas as pd
 import numpy as np
 from scipy.spatial import ConvexHull
-import matplotlib.pyplot as plt
 
 def pruned_hull_facet_inds(hull,tol=0.00001):
     """Given a ConvexHull, return indexes to the facets
