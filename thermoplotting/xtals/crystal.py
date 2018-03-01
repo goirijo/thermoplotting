@@ -138,6 +138,15 @@ class SelectiveAtomCoord(AtomCoord):
         AtomCoord.__init__(self,x,y,z,name)
         self._sd = sd
 
+    def selective_dynamics(self):
+        """Returns the values of the selective dynamics
+        Return
+        -------
+        (bool,bool,bool)
+
+        """
+        return self._sd
+
     def is_selective_dynamics(self):
         """Returns true if any of the selective dynamics flags are true
         Return
@@ -146,7 +155,31 @@ class SelectiveAtomCoord(AtomCoord):
 
         """
         return (False in self._sd)
+
+    def set_selective_dynamics(self, new_sd):
+        """Reset the values for the selective dynamics
+
+        Parameters
+        ----------
+        new_sd : (bool,bool,bool)
+
+        Returns
+        -------
+        void
+
+        """
+        self._sd=new_sd
+        return
         
+    def freeze(self):
+        """Set the selective dynamics to false in all directions
+        Returns
+        -------
+        void
+
+        """
+        self.set_selective_dynamics((False,False,False))
+        return
 
 class Crystal(object):
 
@@ -265,12 +298,14 @@ class Crystal(object):
         void
 
         """
+        np.set_printoptions(precision=4,suppress=True)
+
         sdict=self._species_counts()
         with open(filename, 'w') as posdump:
             posdump.write(self._title+'\n')
             posdump.write(str(self._scaling)+'\n')
 
-            np.savetxt(posdump,self._lattice.row_lattice())
+            np.savetxt(posdump,self._lattice.row_lattice(),fmt='%.8f')
 
             for s in sdict:
                 posdump.write(s+"    ")
@@ -289,7 +324,15 @@ class Crystal(object):
             for s in sdict:
                 for b,f in zip(self._basis, self.frac()):
                     if b.name()==s:
-                        np.savetxt(posdump,np.expand_dims(f,axis=0))
+                        for val in f:
+                            posdump.write("{0:.8f} ".format(val))
+                        if self._is_selective_dynamics():
+                            for sd in b.selective_dynamics():
+                                if(sd):
+                                    posdump.write("T ")
+                                else:
+                                    posdump.write("F ")
+                        posdump.write('\n')
             return
 
 def _vasp5_lines_to_lattice(poscar_lines):
