@@ -23,6 +23,12 @@ def _raise_invalid_choice(choice, choices):
     else:
         return
 
+def custom_cluster(sites,mode="Integral",subclust=True):
+    _raise_invalid_choice(mode,["Integral","Direct"])
+
+    cluster={"coordinate_mode":mode,"include_subclusters":subclust,"prototype":sites}
+    return cluster
+
 def _insert_basis_functions(bspecs, basis_functions):
     """Insert field regarding which type of basis function is desired
     (occupation or chebyshev)
@@ -51,7 +57,7 @@ def _insert_branch_specs(bspecs, lengths):
     bspecs["orbit_branch_specs"]={str(s):{"max_length":l} for s,l in zip(clust_sizes,lengths)}
     return bspecs
 
-def _insert_cluster(bspecs, mode, prototype, include_subclusters):
+def _insert_cluster(bspecs, cluster):
     """Add a single custom cluster in direct or integral mode to the bspecs by specifying the prototype.
 
     :bspecs: dict
@@ -61,14 +67,28 @@ def _insert_cluster(bspecs, mode, prototype, include_subclusters):
     :returns: dict
 
     """
-    _raise_invalid_choice(mode,["Integral","Direct"])
-
     if "orbit_specs" not in bspecs:
         bspecs["orbit_specs"]=[]
 
-    intclust={"coordinate_mode":mode, "prototype":prototype,"include_subclusters":include_subclusters}
-    bspecs["orbit_specs"].append(intclust)
+    bspecs["orbit_specs"].append(cluster)
 
+    return bspecs
+
+def _set_custom_clusters(bspecs, clusters):
+    """Given a list of custom clusters, set them to the custom
+    clusters to add to bspecs 
+
+    Parameters
+    ----------
+    bspecs : dict
+    clusters : list of properly formatted clusters
+
+    Returns
+    -------
+    dict
+
+    """
+    bspecs["orbit_specs"]=clusters
     return bspecs
 
 class Bspecs(object):
@@ -91,11 +111,30 @@ class Bspecs(object):
         """Insert a single custom cluster in integral mode
 
         :prototype: list of list of int
-        :returns: TODO
+        :returns: dict
 
         """
-        self._bspecsdict=_insert_cluster(self._bspecsdict, "Integral", prototype, subclusters)
-        return
+        intcluster=custom_cluster(prototype,"Integral",subclusters)
+        self._bspecsdict=_insert_cluster(self._bspecsdict, intcluster)
+        return self._bspecsdict
+
+    def miniaturize_basis_set(self, eci_source):
+        """Given a eci.json fit, create a set of custom clusters from
+        the basis functions with active eci, and set that list to be
+        the custom clusters
+
+        Parameters
+        ----------
+        eci_source : json
+
+        Returns
+        -------
+        dict
+
+        """
+        custom_clusters=[custom_cluster(cf["prototype"]["sites"],"Integral",False) for cf in eci_source["cluster_functions"] if "eci" in cf]
+        _set_custom_clusters(self._bspecsdict, custom_clusters)
+        return self._bspecsdict
 
     def dump(self):
         """Mostly for debugging. Print the bspecs dictionary to the screen.

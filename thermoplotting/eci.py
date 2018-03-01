@@ -91,12 +91,16 @@ class ECI(object):
     Stores values as pandas DataFrame in addition to the
     json format"""
 
-    def __init__(self, filename):
+    def __init__(self, filename, screen=lambda cf:True):
         """Constructs the object, saving all the data from the json
         file, making a pandas representation, and setting different
         parameters for plotting, etc.
+        A screen function can be passed that takes a cluster function
+        dict from the eci.json file and returns False it should be
+        screened out, or True if it should be kept.
 
         :filename: eci.json path
+        :screen: function that returns True or False for a given cluster function
 
         """
         self._filename = filename
@@ -104,7 +108,10 @@ class ECI(object):
         datadump=open(filename).read()
         data=json.loads(datadump)
 
-        self._jsoneci=data
+        self._jsoneci_full=data
+        self._jsoneci={"cluster_functions":[]}
+        screened=[cf for cf in data["cluster_functions"] if screen(cf)]
+        self._jsoneci["cluster_functions"]=screened
 
         #Store as pandas, but discard eci with values of 0.0
         self._pdeci=squashed_eci(json_eci_to_pandas(self._jsoneci))

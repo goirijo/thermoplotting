@@ -25,6 +25,32 @@ def _non_sequential_raise(basis):
     return
 
 
+def drop_non_active_basis_functions(basis):
+    """Remove all basis functions with no eci value and reindex the basis
+    in a sequential order. New field is entered to remember what the old
+    index used to be
+
+    Parameters
+    ----------
+    basis : json (eci.json file content)
+
+    Returns
+    -------
+    json
+
+    """
+
+    active_cf=[cf for cf in basis["cluster_functions"] if "eci" in cf]
+    basis["cluster_functions"]=active_cf
+
+    #reindex basis functions...
+    for ix,cf in enumerate(basis["cluster_functions"]):
+        old_ix=cf["linear_function_index"]
+        cf["reindexed_from"]=old_ix
+        cf["linear_function_index"]=ix
+
+    return basis
+
 class Detector(object):
 
     """Holds the basis functions for a particular system
@@ -109,6 +135,42 @@ class Detector(object):
                 if self._formula_has_exclusively(cf["prototype_function"],species)]
         return indexes
 
+    def custom_detection(self, detector, compare_fields, expectation):
+        """Map the indexes of shared clusters from the given detector to
+        self. Unlike detect_clusters, this routine allows specifying
+        what fields should be compared to determine what a shared cluster is,
+        allowing for example the comparison of the basis function formula, which
+        would distinguish basis functions instead of just clusters.
+        It also allows passing a function that triggers an error for certain
+        types of clusters when they cannot be mapped. For example, the expectation
+        can be to always expect a mapping (returns True), never expect
+        a mapping (returns False), or expect only for active basis functions
+        (returns True of the cluster function has an "eci" entry"
+
+        Parameters
+        ----------
+        detector : Detector
+        compare_fields : list of fileds in a cluster_function from basis.json
+        expectation : function that takes a cluster_function dict and returns True
+        if an error should be raised in the case it couldn't be mapped
+
+        Returns
+        -------
+        [(detector index,self index)]
+
+        """
+        ix_map=[]
+        for subfunc in detector._basis["cluster_functions"]:
+            found=False
+            for func in self._basis["cluster_functions"]:
+                if compare_cluster(subfunc,func,compare_fields):
+                    found=True
+                    ix_map.append((subfunc["linear_function_index"],func["linear_function_index"]))
+            if found==False and expectation(subfunc):
+                # raise ValueError("Could not map cluster "+str(subfunc["linear_function_index"])+" onto this basis!")
+                raise ValueError("Could not map cluster function {} onto this basis!".format(subfunc["linear_function_index"]))
+        return ix_map
+
     def detect_clusters(self, detector,expect_all=True):
         """Map the indexes of shared clusters from the given detector to 
         self. As a default, the expectation is that every
@@ -120,6 +182,7 @@ class Detector(object):
         :returns: list of (int,int)
 
         """
+        #TODO: Consolidate with custom_detection
         ix_map=[]
         for subfunc in detector._basis["cluster_functions"]:
             found=False
@@ -180,7 +243,7 @@ class Detector(object):
 
         """
         #Find which clusters we're dealing with
-        clust_map=self.detect_clusters(detector)
+        clust_map=self.detect_clusters(detector,expect_all)
 
         #Find which species we're dealing with
         subspecies=detector.species()
@@ -273,6 +336,44 @@ class Detector(object):
                 cf["eci"]=ecivals.loc[cf["linear_function_index"]]
 
         return traced_basis
+
+    def iterclust(self, species=[]):
+        """Iterate over the cluster functions that contain the specified species
+
+        Parameters
+        ----------
+        index_range : TODO, optional
+        species : list of str, optional
+
+        Returns
+        -------
+        dict
+
+        """
+        for cf in self._basis["cluster_functions"]:
+            #TODO: Not too flexible. Also should this iterator stuff just be it's own class?
+            good_species=True
+            for sp in species:
+                formula=cf["prototype_function"]
+                if not self._formula_has_specie(formula, sp):
+                    good_species=False
+                    break
+
+            if not good_species:
+                continue
+
+            yield cf
+        
+        return
+
+    def __iter__(self):
+        """Iterate over the cluster functions
+        Returns
+        -------
+        TODO
+
+        """
+        return iter(self._basis["cluster_functions"])
 
         
 

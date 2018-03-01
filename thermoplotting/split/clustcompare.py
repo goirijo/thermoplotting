@@ -21,7 +21,7 @@ def species_from_basis(basis):
 
     return set(species_dump)
 
-def compare_cluster(clust0, clust1):
+def compare_cluster(clust0, clust1, fields=("mult","prototype")):
     """Given two clusters, compare the multiplicity
     and prototype to determine whether they describe
     the same set of sites. This should work fine, but
@@ -35,7 +35,7 @@ def compare_cluster(clust0, clust1):
     """
     is_equal=True
 
-    for prop in ("mult","prototype"):
+    for prop in fields:
         if clust0[prop]!=clust1[prop]:
             is_equal=False
 
@@ -102,18 +102,20 @@ def formula_has_any_bfunc(formula,bfunc_set):
 
 def formula_has_multi_any_bfunc(formula, bfunc_set):
     """Returns true if the total times any of the provided
-    basis functions appear in the formula is more than unity.
+    basis functions appear in the formula is more than once
+    per per normalization.
 
     :formula: str
     :bfunc_set: list of str
     :returns: bool
 
     """
+    equivalents=formula.count("+")+1
     instances=0
     for b in bfunc_set:
         instances+=formula.count(b)
 
-    return instances>1
+    return instances/equivalents>1
     
 
 

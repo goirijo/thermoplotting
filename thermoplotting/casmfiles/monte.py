@@ -10,6 +10,7 @@ from ..misc import all_confignames, json_to_file
 import string
 import copy
 import os
+import glob
 
 
 def generate_condition_from_dict(cond_dict):
@@ -90,6 +91,10 @@ def dirname_from_condition(condition,
         dirname += "T_" + T_format.format(condition["temperature"])
 
     return dirname
+
+def streak_dirs(streakname, groundname, jsonfile):
+    pathname=os.path.join(".",streakname,groundname,"mu*_*__T_*",jsonfile)
+    return glob.glob(pathname)
 
 
 # def direname_from_incremental_driver(driver_settings):
@@ -247,7 +252,7 @@ class Monte(object):
         :returns: json
 
         """
-        if check_value:
+        if check_value and configname!="restricted_auto":
             all_configs = all_confignames()
             for c in all_configs:
                 if not any(all_configs == configname):
@@ -431,7 +436,7 @@ class ConditionsDomain(object):
         return pd.DataFrame({k: cond_combos[ix] for ix, k in enumerate(axes)})
 
     def axes(self):
-        return self.axes[:]
+        return self._axes[:]
 
 
 def singular_streak_along_axis(settings, fixed_cond, axis, axis_range, tols):
@@ -511,6 +516,7 @@ def prepare_streak_directories(settings,
                                settings_filename="monte_settings.json",
                                streak_dirname=None,
                                motif_dirname=None,
+                               target=".",
                                **kwargs):
     """
     Given starting settings and a domain for the conditions, select a thermodynamic variable as an axis
@@ -524,6 +530,7 @@ def prepare_streak_directories(settings,
     :settings_filename: str (name for the final json settings file)
     :streak_dirname: str (name for the top level directory, default streak_{}.format(streak_axis))
     :motif_dirname: str (name for directory inside streak_direname, default is the configname)
+    :target: str (name of directory to work from)
     :returns: void
 
     """
@@ -533,7 +540,7 @@ def prepare_streak_directories(settings,
     if motif_dirname is None:
         motif_dirname = motif.replace('/', '.')
 
-    basedir = os.path.join(streak_dirname, motif_dirname)
+    basedir = os.path.join(target,streak_dirname, motif_dirname)
 
     settings.set_motif(motif)
     streaks = streak_along_axis(settings, domain, streak_axis)

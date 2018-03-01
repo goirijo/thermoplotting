@@ -36,6 +36,25 @@ class ThermoArray(object):
                 
         return
 
+
+    def _raise_not_controlled(self, parameter):
+        """If the given parameter is not a controlled variable,
+        raise an error
+
+        Parameters
+        ----------
+        parameter : str
+
+        Returns
+        -------
+        void or raises
+
+        """
+        if parameter not in self._controlled_var:
+            raise KeyError("The field {} was is not controlled".format(field))
+        else:
+            return
+
     def _prepare_data(self, datalist, headerdict, decimals):
         """Put all the data sets together and rename the columns
         to match the headerdict
@@ -185,6 +204,7 @@ class ThermoArray(object):
         :returns: int
 
         """
+        self._raise_not_controlled(parameter)
         axis=self._controlled_var.index(parameter)
         return axis
 
@@ -233,9 +253,7 @@ class ThermoArray(object):
         :returns: 1D np
 
         """
-        if parameter not in self._controlled_var:
-            # raise KeyError("The field "+str(field)+" was is not controlled")
-            raise KeyError("The field {} was is not controlled".format(field))
+        self._raise_not_controlled(parameter)
 
         pretuple=[0]*(len(self._params_shape)+1)
         pretuple[0]=self._controlled_var.index(parameter)
@@ -254,6 +272,47 @@ class ThermoArray(object):
 
         """
         return [np.where(self.data_view(parameter)==v) for v in self.controlled_parameter_values(parameter) ]
+
+    def as_dataframe(self):
+        """Unroll the entire array and return the values as a pandas
+        DataFrame
+
+        Returns
+        -------
+        pd DataFrame
+
+        """
+        datadict={}
+        for d in self._dependent_var:
+            datadict[d]=self[d].ravel()
+
+        for c in self._controlled_var:
+            datadict[c]=self[c].ravel()
+
+        return pd.DataFrame(datadict)
+
+    def axis_range(self, parameter):
+        """Get list of sampled values along a controlled variable
+        axis
+
+        Parameters
+        ----------
+        parameter : str
+
+        Returns
+        -------
+        np array
+
+        """
+        self._raise_not_controlled(parameter)
+
+        paramix=self._controlled_var.index(parameter)
+        sliceix=[0]*(len(self._params_shape)+1)
+        sliceix[0]=paramix
+        sliceix[paramix+1]=slice(None)
+
+        return self._controlled_params[tuple(sliceix)]
+        
 
     @staticmethod
     def minimize(arraylist,axistag):

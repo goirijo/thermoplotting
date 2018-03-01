@@ -45,7 +45,7 @@ def scatter3(ax, x, y, z, *args, **kwargs):
     digested = _digest_data(x, y, z)
 
     #Scatter things
-    ax.scatter(digested[:, 0], digested[:, 1], digested[:, 2], *args, **kwargs)
+    return ax.scatter(digested[:, 0], digested[:, 1], digested[:, 2], *args, **kwargs)
 
     return ax
 
@@ -65,12 +65,13 @@ def projected_scatter(ax, x, y, *args, **kwargs):
     """
     #z values don't matter, since we're projecting
     digested = _digest_data(x, y, y)
-    #Scatter things
-    ax.scatter(digested[:, 0], digested[:, 1], *args, **kwargs)
 
     ax.set_xlim([-0.1, 1.1])
     ax.set_ylim([-0.1, 1.1])
     ax.set_aspect('equal')
+
+    #Scatter things
+    return ax.scatter(digested[:, 0], digested[:, 1], *args, **kwargs)
 
     return ax
 
@@ -110,6 +111,25 @@ def _draw_projected_facet(ax, facet, kwargs):
     ax.add_patch(tri)
     return ax
 
+def _scatter_projected_facet(ax, facet, kwargs):
+    """Scatter the corners of a facet onto the composition plane
+
+    Parameters
+    ----------
+    :ax: mpl axis
+    :facet: from scipy.Hull
+    :kwargs: Polygon arguments
+    :returns: ax
+
+
+    Returns
+    -------
+    mpl axis
+
+    """
+    coords = facet[:, [0, 1]]
+    ax.scatter(facet[:,0],facet[:,1],**kwargs)
+    return ax
 
 def draw_projected_convex_hull(ax,
                                x,
@@ -138,6 +158,32 @@ def draw_projected_convex_hull(ax,
     ax.set_ylim([-0.1, 1.1])
     ax.set_aspect('equal')
 
+    return ax
+
+def scatter_projected_convex_hull(ax, x, y, z, kwargs):
+    """Draw the points that make up the convex hull, but plot
+    them projected onto the composition plane   
+
+    Parameters
+    ----------
+    ax : mpl axis
+    x : composition data
+    y : composition data
+    z : composition data
+    :kwargs: keyword arguments for the add_patch function
+
+    Returns
+    -------
+    mpl axis
+
+    """
+    digested = _digest_data(x, y, z)
+    facets = ternary.pruned_hull_facets(digested)
+
+    for f in facets:
+        ax = _scatter_projected_facet(ax, f, kwargs)
+
+    #Set projected view? axis, aspect, etc?
     return ax
 
 
@@ -244,10 +290,34 @@ class Energy3(object):
         """
         ax = draw_projected_convex_hull(ax, self._running_data[self._xlabel],
                                         self._running_data[self._ylabel],
-                                        self._running_data[self._zlabel])
+                                        self._running_data[self._zlabel],
+                                        kwargs)
 
         ax.set_aspect('equal')
 
+        return ax
+
+    def scatter_projected_convex_hull(self, ax, kwargs={}):
+        """Scatter the points of the convex hull, but project all points onto the composition
+        space.
+
+        Parameters
+        ----------
+        :ax: matplotlib axis
+        :kwargs: keyword arguments for the add_patch function
+        :returns: matplotlib axis
+
+        Returns
+        -------
+        mpl axis
+
+        """
+        ax = scatter_projected_convex_hull(ax, self._running_data[self._xlabel],
+                                        self._running_data[self._ylabel],
+                                        self._running_data[self._zlabel],
+                                        kwargs)
+
+        ax.set_aspect('equal')
         return ax
 
 
@@ -275,7 +345,7 @@ class Energy2(object):
         :returns: np array
 
         """
-        #Save the data
+
         concatable = pd.DataFrame({
             self._xlabel: np.ravel(x),
             self._ylabel: np.ravel(y)

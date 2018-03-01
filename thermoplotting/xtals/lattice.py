@@ -426,6 +426,24 @@ class Lattice(object):
 
         return al,bl,cl
 
+    def column_lattice(self):
+        """Return the lattice as column vectors in a matrix
+        Returns
+        -------
+        np.array 3x3
+
+        """
+        return self._latmat
+
+    def row_lattice(self):
+        """Return the lattice as row vectors in a matrix
+        Returns
+        -------
+        np.array 3x3
+
+        """
+        return self._latmat.T
+
 
 if __name__ == "__main__":
     main()
