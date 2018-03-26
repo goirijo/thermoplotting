@@ -335,6 +335,23 @@ class Crystal(object):
                         posdump.write('\n')
             return
 
+def _vasp5_lines_to_abc(poscar_lines):
+    """Extract the lattice from the line dump of a poscar file
+
+    Parameters
+    ----------
+    poscar : list of str
+
+    Returns
+    -------
+    np.array
+
+    """
+    abc=np.array([l.split() for l in poscar_lines[2:5]])
+    abc=abc.astype(float)
+
+    return abc
+
 def _vasp5_lines_to_lattice(poscar_lines):
     """Extract the lattice from the line dump of a poscar file
 
@@ -347,8 +364,7 @@ def _vasp5_lines_to_lattice(poscar_lines):
     Lattice
 
     """
-    abc=np.array([l.split() for l in poscar_lines[2:5]])
-    abc=abc.astype(float)
+    abc=_vasp5_lines_to_abc(poscar_lines)
 
     return Lattice(*abc)
 
