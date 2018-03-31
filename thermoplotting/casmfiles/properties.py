@@ -178,6 +178,22 @@ class Properties(object):
         """
         return self.num_species() / self.total_atoms()
 
+    def composition(self, specie):
+        """Return the composition of the specified
+        specie
+
+        Parameters
+        ----------
+        specie : str
+
+        Returns
+        -------
+        float
+
+        """
+        return self.compositions()[self.species().index(specie)]
+        pass
+
     def energy(self):
         """Return the calculated vasp energy
 
@@ -264,6 +280,9 @@ class BarrierProperties(object):
 
     def compositions(self):
         return self._image_properties[0].compositions()
+
+    def composition(self,specie):
+        return self._image_properties[0].composition(specie)
 
     def kra(self):
         """Calculate the KRA value. At the moment the only way
