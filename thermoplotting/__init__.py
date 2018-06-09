@@ -16,3 +16,4 @@ from .selection import Selection
 from . import systems
 from . import split
 from . import casmfiles
+from . import kinetics

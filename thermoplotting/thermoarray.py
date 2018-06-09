@@ -73,7 +73,7 @@ class ThermoArray(object):
         #rounding does not remove -0.0, thought it shouldn't matter
         return combined_data.round(decimals)
 
-    def __init__(self, datalist, controlled_var, headerdict={}, decimals=8):
+    def __init__(self, datalist, controlled_var, headerdict, decimals=8):
         """Stack DataFrames together that all have the same controlled variables
         it all into an N-dimensional array with axis T, mu0, mu1...
 

@@ -57,17 +57,18 @@ class Properties(object):
     calculation, not something like a barrier, where there's a
     collection of images."""
 
-    def __init__(self, properties):
+    def __init__(self, properties,ignore=[]):
         """Initialize with the json dictionary
 
         Parameters
         ----------
         properties : dict
+        ignore : list of keys that you don't care about
 
 
         """
         for p in self._required_keys():
-            if p not in properties.keys():
+            if p not in properties.keys() and p not in ignore:
                 raise ValueError("Missing key '{}' in dictionary!".format(p))
         self._properties = properties
         return
@@ -88,19 +89,20 @@ class Properties(object):
         ]
 
     @classmethod
-    def from_json(cls, filename):
+    def from_json(cls, filename, ignore=[]):
         """Initialize instance with a filename
 
         Parameters
         ----------
         filename : string or path
+        ignore : list of keys you don't care about
 
         Returns
         -------
         Properties
 
         """
-        filedict = json_from_file(filename)
+        filedict = json_from_file(filename, ignore)
         return cls(filedict)
 
     @classmethod
@@ -251,12 +253,13 @@ class BarrierProperties(object):
         self._atomic_sanity_throw()
 
     @classmethod
-    def from_json(cls, filename):
+    def from_json(cls, filename, ignore=[]):
         """Initialize from a json file
 
         Parameters
         ----------
         filename : str or path
+        ignore : a list of keys you don't care about
 
         Returns
         -------
@@ -266,7 +269,7 @@ class BarrierProperties(object):
         filedict = json_from_file(filename)
         keys = filedict.keys()
         keys.sort()
-        props = [Properties(filedict[k]) for k in keys if k.isdigit()]
+        props = [Properties(filedict[k],ignore) for k in keys if k.isdigit()]
         return cls(props)
 
     def species(self):
@@ -294,12 +297,14 @@ class BarrierProperties(object):
         float
 
         """
-        if len(self._image_properties) % 2 == 0:
-            raise ValueError(
-                "Under the current implementation, an odd number of images is required"
-                "to calculate the KRA value.")
+        # if len(self._image_properties) % 2 == 0:
+        #     raise ValueError(
+        #         "Under the current implementation, an odd number of images is required"
+        #         "to calculate the KRA value.")
 
         midpoint=(self._image_properties[0].energy()+self._image_properties[-1].energy())/2
-        return self._image_properties[len(self._image_properties)//2].energy()-midpoint
+        energies=np.array([im.energy() for im in self._image_properties])
+        maxen=np.max(energies)
+        return maxen-midpoint
 
 
