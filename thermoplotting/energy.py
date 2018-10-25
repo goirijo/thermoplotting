@@ -243,7 +243,9 @@ class Energy3(object):
         """
         ax = scatter3(ax, self._running_data[self._xlabel],
                       self._running_data[self._ylabel],
-                      self._running_data[self._zlabel])
+                      self._running_data[self._zlabel],
+                      *args,
+                      **kwargs)
         return ax
 
     def projected_scatter(self, ax, *args, **kwargs):
@@ -258,7 +260,9 @@ class Energy3(object):
         """
         ax = projected_scatter(ax, self._running_data[self._xlabel],
                                self._running_data[self._ylabel],
-                               self._running_data[self._zlabel])
+                               self._running_data[self._zlabel],
+                               *args,
+                               **kwargs)
         return ax
 
     def draw_convex_hull(self, ax):
