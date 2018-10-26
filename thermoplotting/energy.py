@@ -186,6 +186,28 @@ def scatter_projected_convex_hull(ax, x, y, z, **kwargs):
     #Set projected view? axis, aspect, etc?
     return ax
 
+def hull_points(x, y, z):
+    """Return the points that make up the convex hull
+    Parameters
+    ----------
+    x : composition data
+    y : composition data
+    z : energy data
+
+    Returns
+    -------
+    list of points
+
+    """
+    digested = _digest_data(x, y, z)
+    facets = ternary.pruned_hull_facets(digested)
+    hull_points=[]
+    for f in facets:
+        for point in f:
+            hull_points.append(point)
+    hull_points=list(set(hull_points))
+    return hull_points
+
 
 class Energy3(object):
     """Handles plotting ternary energy, with
@@ -322,6 +344,11 @@ class Energy3(object):
 
         ax.set_aspect('equal')
         return ax
+
+    def hull_points(self):
+        return hull_points(self._running_data[self._xlabel],
+                            self._running_data[self._ylabel],
+                            self._running_data[self._zlabel])
 
 
 class Energy2(object):
