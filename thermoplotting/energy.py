@@ -260,7 +260,6 @@ class Energy3(object):
         """
         ax = projected_scatter(ax, self._running_data[self._xlabel],
                                self._running_data[self._ylabel],
-                               self._running_data[self._zlabel],
                                *args,
                                **kwargs)
         return ax
