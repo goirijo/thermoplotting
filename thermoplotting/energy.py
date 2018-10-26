@@ -111,7 +111,7 @@ def _draw_projected_facet(ax, facet, kwargs):
     ax.add_patch(tri)
     return ax
 
-def _scatter_projected_facet(ax, facet, kwargs):
+def _scatter_projected_facet(ax, facet, **kwargs):
     """Scatter the corners of a facet onto the composition plane
 
     Parameters
@@ -160,7 +160,7 @@ def draw_projected_convex_hull(ax,
 
     return ax
 
-def scatter_projected_convex_hull(ax, x, y, z, kwargs):
+def scatter_projected_convex_hull(ax, x, y, z, **kwargs):
     """Draw the points that make up the convex hull, but plot
     them projected onto the composition plane   
 
@@ -181,10 +181,34 @@ def scatter_projected_convex_hull(ax, x, y, z, kwargs):
     facets = ternary.pruned_hull_facets(digested)
 
     for f in facets:
-        ax = _scatter_projected_facet(ax, f, kwargs)
+        ax = _scatter_projected_facet(ax, f, **kwargs)
 
     #Set projected view? axis, aspect, etc?
     return ax
+
+def hull_points(x, y, z):
+    """Return the points that make up the convex hull
+    Parameters
+    ----------
+    x : composition data
+    y : composition data
+    z : energy data
+
+    Returns
+    -------
+    list of points
+
+    """
+    digested = _digest_data(x, y, z)
+    facets = ternary.pruned_hull_facets(digested)
+    hull_points=[]
+    for f in facets:
+        for point in f:
+            hull_points.append(tuple(point))
+    hull_points=list(set(hull_points))
+    for i,pt in enumerate(hull_points):
+        hull_points[i]=np.array(pt)
+    return hull_points
 
 
 class Energy3(object):
@@ -243,7 +267,9 @@ class Energy3(object):
         """
         ax = scatter3(ax, self._running_data[self._xlabel],
                       self._running_data[self._ylabel],
-                      self._running_data[self._zlabel])
+                      self._running_data[self._zlabel],
+                      *args,
+                      **kwargs)
         return ax
 
     def projected_scatter(self, ax, *args, **kwargs):
@@ -258,7 +284,8 @@ class Energy3(object):
         """
         ax = projected_scatter(ax, self._running_data[self._xlabel],
                                self._running_data[self._ylabel],
-                               self._running_data[self._zlabel])
+                               *args,
+                               **kwargs)
         return ax
 
     def draw_convex_hull(self, ax):
@@ -297,7 +324,7 @@ class Energy3(object):
 
         return ax
 
-    def scatter_projected_convex_hull(self, ax, kwargs={}):
+    def scatter_projected_convex_hull(self, ax, **kwargs):
         """Scatter the points of the convex hull, but project all points onto the composition
         space.
 
@@ -315,10 +342,15 @@ class Energy3(object):
         ax = scatter_projected_convex_hull(ax, self._running_data[self._xlabel],
                                         self._running_data[self._ylabel],
                                         self._running_data[self._zlabel],
-                                        kwargs)
+                                        **kwargs)
 
         ax.set_aspect('equal')
         return ax
+
+    def hull_points(self):
+        return hull_points(self._running_data[self._xlabel],
+                            self._running_data[self._ylabel],
+                            self._running_data[self._zlabel])
 
 
 class Energy2(object):
