@@ -204,8 +204,10 @@ def hull_points(x, y, z):
     hull_points=[]
     for f in facets:
         for point in f:
-            hull_points.append(point)
-    hull_points=list(set(hull_points))
+            hull_points.append(tuple(point))
+    hull_points=set(hull_points)
+    for i,pt in enumerate(hull_points):
+        hull_points[i]=numpy.array(pt)
     return hull_points
 
 
