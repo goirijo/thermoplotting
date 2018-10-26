@@ -160,7 +160,7 @@ def draw_projected_convex_hull(ax,
 
     return ax
 
-def scatter_projected_convex_hull(ax, x, y, z, **kwargs):
+def scatter_projected_convex_hull(ax, x, y, z, kwargs):
     """Draw the points that make up the convex hull, but plot
     them projected onto the composition plane   
 
@@ -181,7 +181,7 @@ def scatter_projected_convex_hull(ax, x, y, z, **kwargs):
     facets = ternary.pruned_hull_facets(digested)
 
     for f in facets:
-        ax = _scatter_projected_facet(ax, f, **kwargs)
+        ax = _scatter_projected_facet(ax, f, kwargs)
 
     #Set projected view? axis, aspect, etc?
     return ax
@@ -300,7 +300,7 @@ class Energy3(object):
 
         return ax
 
-    def scatter_projected_convex_hull(self, ax, **kwargs):
+    def scatter_projected_convex_hull(self, ax, kwargs={}):
         """Scatter the points of the convex hull, but project all points onto the composition
         space.
 
@@ -318,7 +318,7 @@ class Energy3(object):
         ax = scatter_projected_convex_hull(ax, self._running_data[self._xlabel],
                                         self._running_data[self._ylabel],
                                         self._running_data[self._zlabel],
-                                        **kwargs)
+                                        kwargs)
 
         ax.set_aspect('equal')
         return ax
