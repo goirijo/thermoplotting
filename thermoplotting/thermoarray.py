@@ -21,7 +21,9 @@ class ThermoArray(object):
     want to shorten them to something else when referencing them.
 
     """
-    def _raise_bad_input_data(self, datalist):
+
+    @classmethod
+    def _raise_bad_input_data(cls, datalist):
         """Ensure that the given data makes sense. Controlled variables must be
         regularly gridded
 
@@ -55,7 +57,8 @@ class ThermoArray(object):
         else:
             return
 
-    def _prepare_data(self, datalist, headerdict, decimals):
+    @classmethod
+    def _prepare_data(cls, datalist, headerdict, decimals):
         """Put all the data sets together and rename the columns
         to match the headerdict
 
@@ -73,22 +76,37 @@ class ThermoArray(object):
         #rounding does not remove -0.0, thought it shouldn't matter
         return combined_data.round(decimals)
 
-    def __init__(self, datalist, controlled_var, headerdict, decimals=8):
+    @classmethod
+    def from_data_list(cls, datalist, controlled_var, headerdict, decimals=8):
+        """TODO: Docstring for from_data_list.
+
+        Parameters
+        ----------
+        datalist : List of data to read (presumably from all the results.json)
+        controlled_var : List of strings, specify controlled parameters of data
+        headerdict : Translate the file headers to the internal standard, drop all other fields
+        decimals : int Specify the floating point tolerance. Values will be rounded. Default is 1E-8 (value 8)
+
+        Returns
+        -------
+        ThermoArray
+
+        """
+        cls._raise_bad_input_data(datalist)
+
+        unrolled_data=cls._prepare_data(datalist,headerdict,decimals)
+        return cls(unrolled_data, controlled_var)
+
+    def __init__(self, unrolled_data, controlled_var):
         """Stack DataFrames together that all have the same controlled variables
         it all into an N-dimensional array with axis T, mu0, mu1...
 
-        :datalist: List of data to read (presumably from all the results.json)
-        :controlled_var: List of strings, specify controlled parameters of data
-        :headerdict: Translate the file headers to the internal standard, drop all other fields
-        :decimals: int Specify the floating point tolerance. Values will be rounded. Default is 1E-8 (value 8)
+        Parameters
+        ----------
+        controlled_var : List of strings, specify controlled parameters of data
+        unrolled_data : A pandas DataFrame with all the data concatenated, that can be reshaped to mutlidimensional array
 
         """
-        self._raise_bad_input_data(datalist)
-
-        # self._readfilelist = readfilelist
-        self._headerdict=headerdict
-
-        unrolled_data=self._prepare_data(datalist,headerdict,decimals)
 
         #store dependent and independent variables in separate lists
         colnames=unrolled_data.columns
@@ -142,6 +160,23 @@ class ThermoArray(object):
             raise KeyError("The field {} was neither in the controlled or dependent variables lists".format(field))
 
         return tuple(pretuple)
+
+    # def chop(self, axisfield, chop_range):
+    #     """Return a copy of the ThermoArray that has had
+    #     the data block chopped along the specified axis,
+    #     resulting in a subset of the ThermoArray.
+
+    #     Parameters
+    #     ----------
+    #     axisfield : str
+    #     chop_range : (from,to)
+
+    #     Returns
+    #     -------
+    #     ThermoArray
+
+    #     """
+    #     duplicate=self.copy()
 
     def data_view(self, field):
         """Returns view (!!) of the data requested by field. Dimensions
@@ -237,12 +272,23 @@ class ThermoArray(object):
 
         return self
 
+    def copy(self):
+        """Clone the instance of the ThermoArray and return it.
+        Returns
+        -------
+        ThermoArray
+
+        """
+        duplicate=copy.deepcopy(self)
+        return duplicate
+        
+
     def _template(self):
         """Return copy of self with all dependent parameter values as nan
         :returns: TODO
 
         """
-        duplicate=copy.deepcopy(self)
+        duplicate=self.copy()
         duplicate._dependent_params[...]=np.NaN
         return duplicate
 

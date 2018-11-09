@@ -223,6 +223,15 @@ class Crystal(object):
 
         self._initialize()
 
+    def basis(self):
+        """Returns the entire basis of the structure
+        Returns
+        -------
+        list(AtomCoord)
+
+        """
+        return self._basis
+
     def lattice(self):
         """Returns the lattice of the structures
         Returns
@@ -262,7 +271,10 @@ class Crystal(object):
         void
 
         """
-        self._basis.append(new_site)
+        if isinstance(new_site,list):
+            self._basis=self._basis+new_site
+        else:
+            self._basis.append(new_site)
         self._initialize()
 
     def _species_counts(self):
@@ -283,6 +295,24 @@ class Crystal(object):
                 sdict[name]=1
 
         return sdict
+
+    def delete_basis_site(self, ix):
+        """Remove an atom from the basis, given its index
+        in the list, and return a new Crystal without it.
+
+        Parameters
+        ----------
+        ix : int
+
+        Returns
+        -------
+        self
+
+        """
+        newbasis=self._basis[:]
+        newbasis.pop(ix)
+        print(len(newbasis))
+        return Crystal(self._lattice,newbasis,self._title,self._scaling)
 
     def to_vasp5(self, filename):
         """Dump the contents in vasp5 format. No fancy options
