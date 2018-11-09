@@ -78,7 +78,7 @@ class ThermoArray(object):
 
     @classmethod
     def from_data_list(cls, datalist, controlled_var, headerdict, decimals=8):
-        """TODO: Docstring for from_data_list.
+        """TODO: Construct the ThermoArray from a list of pandas arrays, instead of one big one
 
         Parameters
         ----------
