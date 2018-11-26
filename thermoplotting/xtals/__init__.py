@@ -4,3 +4,4 @@ from .import lattice
 from .lattice import Lattice
 from .crystal import Crystal
 from . import crystal
+from . import clusters
