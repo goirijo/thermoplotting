@@ -12,6 +12,7 @@ from .misc import *
 from .thermoarray import *
 from .eci import ECI
 from .energy import Energy3
+from .energy import Energy2
 from .selection import Selection
 from . import systems
 from . import split

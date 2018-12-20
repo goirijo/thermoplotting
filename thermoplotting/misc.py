@@ -502,3 +502,41 @@ def configmatch(match_to_data, match_from_row, match_values, eps=0.0000001):
     del match_to_data[tmp_col]
     return ixmatch
 
+def loocv(y,X,v):
+    """Compute the Leave One Out Cross Validation after you've already done the fit
+
+    Parameters
+    ----------
+    y : energies
+    X : correlations
+    v : ECI
+
+    Returns
+    -------
+    float
+
+    """
+    e=y-np.dot(X,v)
+    #https://robjhyndman.com/hyndsight/loocv-linear-models/
+    H = X.dot(np.linalg.inv(X.T.dot(X)).dot(X.T))
+    h=np.diag(H)
+
+    return np.mean((e/1-h)**2)
+
+def rms(y,X,v):
+    """Compute the Root Mean Square of your fit
+
+    Parameters
+    ----------
+    y : energies
+    X : correlations
+    v : ECI
+
+    Returns
+    -------
+    float
+
+    """
+    clex=np.dot(X,v)
+    error=clex-y
+    return np.sqrt(np.mean(error**2))
