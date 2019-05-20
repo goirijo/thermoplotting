@@ -25,8 +25,7 @@ from version import get_version
 install_requires=["pandas",
         "numpy",
         "scipy",
-        "matplotlib",
-        "future"]
+        "matplotlib"]
 
 
 setup(name="thermoplotting",
