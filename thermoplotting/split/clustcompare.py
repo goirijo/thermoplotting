@@ -15,6 +15,7 @@ def species_from_basis(basis):
     """
     species_dump=[]
     for sf in basis["site_functions"]:
+        if not isinstance(sf["basis"], list) : continue
         for phi in sf["basis"]:
             for elem in sf["basis"][phi]:
                 species_dump.append(elem)
@@ -53,6 +54,7 @@ def species_to_basis_dict(basis):
     """
     species_to_basis={}
     for unit in basis["site_functions"]:
+        if not isinstance(unit["basis"], list) : continue
         for basis in unit["basis"]:
             for b in unit["basis"][basis]:
                 if unit["basis"][basis][b]==1:
